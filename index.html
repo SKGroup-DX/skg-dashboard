@@ -3461,7 +3461,7 @@ function toggleJuchuPerson(idx) {
 
   let html = '<div style="border-top:1px solid var(--border);padding-top:12px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">'
-    + '<h3 style="margin:0;">' + esc(r.person) + 'さんの受注案件（年度累計）</h3>'
+    + '<h3 style="margin:0;">' + esc(r.person) + 'さんの新規案件（年度累計）</h3>'
     + '<span style="font-weight:700;color:var(--primary);">合計 ' + fmtNum(r.total) + '円</span>'
     + '</div>'
     + '<div class="table-scroll"><table class="data-table">'
@@ -3560,7 +3560,7 @@ function renderJuchuMonthly(data) {
     juchu.forEach(function(r) { total += r.amount; });
 
     html += '<div class="card">'
-      + '<h2>主な受注案件<span style="float:right;font-size:14px;color:var(--muted);">合計 ' + fmtNum(total) + '円</span></h2>'
+      + '<h2>主な新規案件<span style="float:right;font-size:14px;color:var(--muted);">合計 ' + fmtNum(total) + '円</span></h2>'
       + '<div class="table-scroll"><table class="data-table">'
       + '<thead><tr>'
       + '<th>物件名</th><th>品目</th>'
@@ -3584,6 +3584,11 @@ function renderJuchuMonthly(data) {
 
 // ============================================================
 // 受注案件：ダッシュボードからの追加・編集・削除
+// 区分はGAS側が表示先の振り分けに使っているため、値を変えるときは
+// GASの JUCHU_KIND_OPTIONS / getJuchuMonthly_ / getJuchuRanking_ もあわせて直すこと。
+const JUCHU_KIND_OPTIONS = ['新規案件', '大型案件'];
+// 品目は表示のみで振り分けには使っていないので、増減は自由
+const JUCHU_ITEM_OPTIONS = ['産廃', '機密', '産廃＋機密', '古紙', '有価買取', 'その他'];
 // ============================================================
 function openJuchuEditModal_(id) {
   const ym = document.getElementById('juchu-ym-select').value;
@@ -3595,7 +3600,7 @@ function openJuchuEditModal_(id) {
 
 function openJuchuModal_(existing) {
   const isEdit = !!existing;
-  const kind = existing ? existing.kind : '受注案件';
+  const kind = existing ? existing.kind : JUCHU_KIND_OPTIONS[0];
   const ym = existing ? existing.ym : (document.getElementById('juchu-ym-select').value || document.getElementById('ym-select').value || '');
   const name = existing ? existing.name : '';
   const item = existing ? existing.item : '';
@@ -3605,17 +3610,27 @@ function openJuchuModal_(existing) {
   const content = existing ? existing.content : '';
   const id = existing ? existing.id : '';
 
-  let html = '<h3>' + (isEdit ? '受注案件を編集' : '受注案件を新規追加') + '</h3>';
-  html += '<div class="modal-field"><label>区分</label><select id="jc-modal-kind">'
-    + '<option value="受注案件"' + (kind === '受注案件' ? ' selected' : '') + '>受注案件</option>'
-    + '<option value="大型案件"' + (kind === '大型案件' ? ' selected' : '') + '>大型案件</option>'
-    + '</select></div>';
+  // 一覧に無い値（シートに直接入力されたもの）が来ても消えないよう、選択肢に足してから描く
+  function juchuSelect_(elId, options, current, allowEmpty) {
+    const opts = options.slice();
+    if (current && opts.indexOf(current) === -1) opts.push(current);
+    let h = '<select id="' + elId + '">';
+    // 品目は未選択のまま保存できるようにしておく（触らずに先頭の値が入るのを防ぐ）
+    if (allowEmpty) h += '<option value=""' + (current ? '' : ' selected') + '>（未選択）</option>';
+    opts.forEach(function(o) {
+      h += '<option value="' + esc(o) + '"' + (o === current ? ' selected' : '') + '>' + esc(o) + '</option>';
+    });
+    return h + '</select>';
+  }
+
+  let html = '<h3>' + (isEdit ? '案件を編集' : '案件を新規追加') + '</h3>';
+  html += '<div class="modal-field"><label>区分</label>' + juchuSelect_('jc-modal-kind', JUCHU_KIND_OPTIONS, kind) + '</div>';
   html += '<div class="modal-field"><label>対象月</label><input type="month" id="jc-modal-ym" value="' + esc(ym) + '"></div>';
   html += '<div class="modal-field"><label>物件名</label><input type="text" id="jc-modal-name" value="' + esc(name) + '"></div>';
-  html += '<div class="modal-field"><label>品目</label><input type="text" id="jc-modal-item" value="' + esc(item) + '"></div>';
+  html += '<div class="modal-field"><label>品目</label>' + juchuSelect_('jc-modal-item', JUCHU_ITEM_OPTIONS, item, true) + '</div>';
   html += '<div class="modal-field"><label>対応日</label><input type="text" id="jc-modal-date" value="' + esc(date) + '" placeholder="例: 2026-07-15"></div>';
-  html += '<div class="modal-field"><label>金額（受注案件のみ・ランキングに集計されます）</label><input type="number" id="jc-modal-amount" value="' + esc(amount) + '"></div>';
-  html += '<div class="modal-field"><label>担当者（受注案件のみ）</label><input type="text" id="jc-modal-person" value="' + esc(person) + '"></div>';
+  html += '<div class="modal-field"><label>金額（新規案件のみ・ランキングに集計されます）</label><input type="number" id="jc-modal-amount" value="' + esc(amount) + '"></div>';
+  html += '<div class="modal-field"><label>担当者（新規案件のみ）</label><input type="text" id="jc-modal-person" value="' + esc(person) + '"></div>';
   html += '<div class="modal-field"><label>内容（大型案件のみ・自由記述）</label><textarea id="jc-modal-content">' + esc(content) + '</textarea></div>';
   html += '<div class="modal-actions">';
   if (isEdit) html += '<button class="btn btn-danger" onclick="deleteJuchu_(\'' + esc(id) + '\')">削除</button>';
