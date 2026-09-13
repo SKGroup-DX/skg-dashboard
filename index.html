@@ -710,7 +710,7 @@
       <select id="juchu-ym-select" onchange="onJuchuMonthChange()">
         <option value="">選択してください</option>
       </select>
-      <button class="btn btn-primary" style="margin-left:auto;" onclick="openJuchuModal_(null)">＋ 新規追加</button>
+      <button class="btn btn-primary" id="juchu-add-btn" style="margin-left:auto;" onclick="openJuchuModal_(null)">＋ 新規追加</button>
     </div>
 
     <div id="juchu-ranking-section" class="card" style="margin-bottom:16px;">
@@ -730,7 +730,7 @@
       <select id="kengaku-ym-select" onchange="onKengakuMonthChange()">
         <option value="">すべて表示</option>
       </select>
-      <button class="btn btn-primary" style="margin-left:auto;" onclick="openKengakuModal_(null)">＋ 新規追加</button>
+      <button class="btn btn-primary" id="kengaku-add-btn" style="margin-left:auto;" onclick="openKengakuModal_(null)">＋ 新規追加</button>
     </div>
 
     <div id="kengaku-body"><div class="empty">タブを開くと、施設見学の全件一覧が表示されます</div></div>
@@ -743,7 +743,7 @@
       <select id="kanrineage-ym-select" onchange="onKanriNeageMonthChange()">
         <option value="">すべて表示</option>
       </select>
-      <button class="btn btn-primary" style="margin-left:auto;" onclick="openKanriNeageModal_(null)">＋ 新規追加</button>
+      <button class="btn btn-primary" id="kanrineage-add-btn" style="margin-left:auto;" onclick="openKanriNeageModal_(null)">＋ 新規追加</button>
     </div>
 
     <div id="kanrineage-body"><div class="empty">タブを開くと、その他共有事項の全件一覧が表示されます</div></div>
@@ -1081,6 +1081,46 @@ let shinkiDefaultYmApplied = false;
 let juchuDefaultYmApplied = false;
 let kengakuDefaultYmApplied = false;
 
+// 月報からの自動同期が動いているあいだ、受注案件・その他共有事項・施設見学の3つは
+// 月報が入力元になるため、ダッシュボードからは編集できないようにする。
+// （編集できてしまうと、次の同期で書き戻されて入力が消えてしまう）
+// 前回の状態をブラウザに覚えておき、状態が届く前でも編集ボタンを出さないようにする。
+let geppoSyncing = false;
+try {
+  geppoSyncing = localStorage.getItem('skg_geppo_syncing') === '1';
+} catch (e) { /* プライベートブラウズ等で使えない場合は無視する */ }
+
+// 3つのタブの「＋新規追加」ボタンをまとめて出し分ける
+function applyGeppoReadOnly_() {
+  ['juchu-add-btn', 'kanrineage-add-btn', 'kengaku-add-btn'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = geppoSyncing ? 'none' : '';
+  });
+}
+
+function rememberGeppoSyncing_(v) {
+  geppoSyncing = !!v;
+  applyGeppoReadOnly_();
+  try { localStorage.setItem('skg_geppo_syncing', geppoSyncing ? '1' : '0'); } catch (e) { /* 無視 */ }
+}
+
+// 一覧の行末に出す編集アイコン。月報同期中は何も出さない
+function editBtnHtml_(fnName, id, style) {
+  if (geppoSyncing) return '';
+  return '<span class="table-edit-btn"'
+    + (style ? ' style="' + style + '"' : '')
+    + ' title="編集" onclick="' + fnName + '(&#39;' + esc(id) + '&#39;)">✎</span>';
+}
+
+// 月報が入力元のタブに出す案内
+function geppoNoticeHtml_() {
+  if (!geppoSyncing) return '';
+  return '<div style="font-size:12px;color:var(--muted);background:var(--bg-subtle);'
+    + 'border-radius:8px;padding:8px 12px;margin-bottom:10px;">'
+    + '📋 この内容は営業月報から1時間おきに自動で反映されます。修正は月報の各自のシートで行ってください。'
+    + '</div>';
+}
+
 // ============================================================
 // JSONP fetch（CORSを回避）
 // ============================================================
@@ -1240,6 +1280,16 @@ async function init() {
     }
     const months = (res.months || []).sort().reverse();
     rememberLatestActualYm_(res.latestActualYm);
+    // 月報同期の状態も取り、変わっていれば3つのタブを描き直す
+    fetchJSONP(withKey(GAS_URL + '?type=geppo_status')).then(function(st) {
+      const before = geppoSyncing;
+      rememberGeppoSyncing_(st && st.syncing);
+      if (before !== geppoSyncing) {
+        try { renderJuchuMonthly(); } catch (e) {}
+        try { renderKanriNeage(cachedKanriNeageAll); } catch (e) {}
+        try { renderKengaku(cachedKengakuAll); } catch (e) {}
+      }
+    }).catch(function() { /* 取れなくても従来どおり動く */ });
     if (!months.length) return; // 取得できなくても、既に暫定の一覧で動作しているため何もしなくてよい
 
     const currentValue = sel.value;
@@ -3538,11 +3588,11 @@ function renderJuchuMonthly(data) {
   const juchu = (data && data.juchu) ? data.juchu : [];
 
   if (!large.length && !juchu.length) {
-    body.innerHTML = '<div class="empty">この月のデータはまだ登録されていません</div>';
+    body.innerHTML = geppoNoticeHtml_() + '<div class="empty">この月のデータはまだ登録されていません</div>';
     return;
   }
 
-  let html = '';
+  let html = geppoNoticeHtml_();
 
   if (large.length) {
     html += '<div class="card" style="margin-bottom:16px;"><h2>大型案件情報</h2><div style="display:flex;flex-direction:column;gap:8px;">';
@@ -3550,7 +3600,7 @@ function renderJuchuMonthly(data) {
       html += '<div style="position:relative;padding:10px 40px 10px 12px;background:var(--bg);border-radius:8px;">'
         + '<div style="font-weight:600;">' + esc(r.name) + '</div>'
         + '<div style="color:var(--muted);font-size:13px;margin-top:2px;">' + esc(r.content) + '</div>'
-        + '<span class="table-edit-btn" style="position:absolute;top:8px;right:8px;" title="編集" onclick="openJuchuEditModal_(\'' + esc(r.id) + '\')">✎</span>'
+        + editBtnHtml_('openJuchuEditModal_', r.id, 'position:absolute;top:8px;right:8px;')
         + '</div>';
     });
     html += '</div></div>';
@@ -3574,7 +3624,7 @@ function renderJuchuMonthly(data) {
         + '<td>' + esc(r.date) + '</td>'
         + '<td class="num">' + fmtNum(r.amount) + '円</td>'
         + '<td>' + esc(r.person) + '</td>'
-        + '<td><span class="table-edit-btn" title="編集" onclick="openJuchuEditModal_(\'' + esc(r.id) + '\')">✎</span></td>'
+        + '<td>' + editBtnHtml_('openJuchuEditModal_', r.id) + '</td>'
         + '</tr>';
     });
     html += '</tbody></table></div></div>';
@@ -3849,7 +3899,7 @@ function renderKengaku(list) {
     return a.ym < b.ym ? 1 : -1;
   });
 
-  let html = '<div class="card"><h2>施設見学一覧（' + sorted.length + '件）</h2>'
+  let html = geppoNoticeHtml_() + '<div class="card"><h2>施設見学一覧（' + sorted.length + '件）</h2>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
     + '<th>月</th><th>見学日</th>'
@@ -3863,7 +3913,7 @@ function renderKengaku(list) {
       + '<td>' + esc(r.company) + '</td>'
       + '<td>' + esc(r.facility) + '</td>'
       + '<td>' + esc(r.person) + '</td>'
-      + '<td><span class="table-edit-btn" title="編集" onclick="openKengakuEditModal_(\'' + esc(r.id) + '\')">✎</span></td>'
+      + '<td>' + editBtnHtml_('openKengakuEditModal_', r.id) + '</td>'
       + '</tr>';
   });
 
@@ -4001,7 +4051,7 @@ function renderKanriNeage(list) {
     return a.ym < b.ym ? 1 : -1;
   });
 
-  let html = '<div class="card"><h2>その他共有事項（' + sorted.length + '件）</h2>'
+  let html = geppoNoticeHtml_() + '<div class="card"><h2>その他共有事項（' + sorted.length + '件）</h2>'
     + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">顧客名をクリックすると、見込み数量と経緯・案件詳細が表示されます</div>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
@@ -4017,7 +4067,7 @@ function renderKanriNeage(list) {
       + '<td class="col-name"><span class="table-link" onclick="openKanriNeageDetailModal_(\'' + esc(r.id) + '\')">'
         + esc(r.customer || '(顧客名未登録)') + '</span></td>'
       + '<td>' + esc(r.item) + '</td>'
-      + '<td><span class="table-edit-btn" title="編集" onclick="openKanriNeageEditModal_(\'' + esc(r.id) + '\')">✎</span></td>'
+      + '<td>' + editBtnHtml_('openKanriNeageEditModal_', r.id) + '</td>'
       + '</tr>';
   });
 
@@ -4073,7 +4123,7 @@ function openKanriNeageDetailModal_(id) {
   html += '</dl>';
   html += '<div class="modal-actions">'
     + '<button class="btn" onclick="closeModal()">閉じる</button>'
-    + '<button class="btn btn-primary" onclick="openKanriNeageEditModal_(\'' + esc(r.id) + '\')">編集</button>'
+    + (geppoSyncing ? '' : '<button class="btn btn-primary" onclick="openKanriNeageEditModal_(\'' + esc(r.id) + '\')">編集</button>')
     + '</div>';
   openModal_(html);
 }
