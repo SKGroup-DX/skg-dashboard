@@ -4269,7 +4269,13 @@ function renderUkakezan(list, isDefaultView) {
     return a.flagDate < b.flagDate ? 1 : -1;
   });
 
-  const title = isDefaultView ? '現在未解決の案件（' + sorted.length + '件）' : '指摘された案件（' + sorted.length + '件）';
+  var totalAmount = 0;
+  sorted.forEach(function(r) { if (typeof r.amount === 'number') totalAmount += r.amount; });
+  const amountLabel = totalAmount
+    ? '<span style="float:right;font-size:14px;color:var(--muted);">合計 ' + fmtNum(totalAmount) + '円</span>'
+    : '';
+  const title = (isDefaultView ? '現在未解決の案件（' + sorted.length + '件）' : '指摘された案件（' + sorted.length + '件）')
+    + amountLabel;
 
   let html = '<div class="card"><h2>' + title + '</h2>'
     + '<div class="table-scroll"><table class="data-table compact align-top">'
@@ -4277,6 +4283,7 @@ function renderUkakezan(list, isDefaultView) {
     + '<th>指摘日</th>'
     + '<th>コード</th>'
     + '<th>顧客名</th>'
+    + '<th style="text-align:right;">未入金額</th>'
     + '<th>請求日</th>'
     + '<th style="min-width:160px;">理由</th>'
     + '<th style="min-width:200px;">返答</th>'
@@ -4295,6 +4302,8 @@ function renderUkakezan(list, isDefaultView) {
       + '<td style="white-space:nowrap;">' + esc(r.flagDate) + '</td>'
       + '<td style="white-space:nowrap;">' + esc(r.code) + '</td>'
       + '<td style="font-weight:600;white-space:nowrap;">' + esc(r.customer) + '</td>'
+      + '<td class="num" style="text-align:right;font-weight:600;">'
+      + (typeof r.amount === 'number' ? fmtNum(r.amount) + '円' : '') + '</td>'
       + '<td style="white-space:nowrap;">' + esc(r.billing) + '</td>'
       + '<td style="white-space:pre-wrap;">' + esc(r.reason) + '</td>'
       + '<td style="white-space:pre-wrap;">' + esc(r.response) + '</td>'
