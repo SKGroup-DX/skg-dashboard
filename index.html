@@ -4712,11 +4712,11 @@ async function loadDeptTrendAndRender(dept) {
   // デフォルト設定を先頭に追加してから品目プルダウンを構築
   // （「分析」カテゴリはグラフの品目ではなく、下部の分析ノートとして別に表示するため除外する）
   const def = DEPT_DEFAULT_CHART[dept];
-  const itemKeys = [...new Set(
+  const itemKeys = moveTotalItemLast_([...new Set(
     cachedTrend[dept]
       .filter(function(r){ return r.category !== "分析"; })
       .map(function(r){ return r.item + '||' + r.metric; })
-  )];
+  )], function(k) { return k.split('||')[0]; });
 
   let optionsHtml = '';
   // デフォルト（合計）選択肢を先頭に追加
@@ -4755,6 +4755,18 @@ async function loadDeptTrendAndRender(dept) {
   renderAnalysisNotes(dept);
 }
 
+// 「全体合計」は全品目を足し上げたものなので、内訳の途中ではなく最後に置く。
+// （「古紙合計」のような一部だけの合計は、足し上げた品目の直後にある方が
+//   分かりやすいので動かさない）
+const TOTAL_ITEM_NAME = '全体合計';
+
+function moveTotalItemLast_(list, nameOf) {
+  const isTotal = function(x) { return (nameOf ? nameOf(x) : x) === TOTAL_ITEM_NAME; };
+  const rest = list.filter(function(x) { return !isTotal(x); });
+  const total = list.filter(isTotal);
+  return rest.concat(total);
+}
+
 // ============================================================
 // 品目タブ生成（デフォルト指標のみを対象に、品目ごとにタブ化）
 // ============================================================
@@ -4790,11 +4802,11 @@ function renderItemTabs(dept) {
   }
 
   // デフォルト指標に該当する品目一覧（重複なし）
-  const items = [...new Set(
+  const items = moveTotalItemLast_([...new Set(
     cachedTrend[dept]
       .filter(function(r){ return r.metric === defaultMetric; })
       .map(function(r){ return r.item; })
-  )];
+  )]);
 
   if (!items.length) {
     tabsWrap.style.display = 'none';
