@@ -3806,6 +3806,53 @@ function prefetchJuchuDefaultMonth_() {
     .catch(function() { /* 失敗してもタブを開いた時に読み込まれる */ });
 }
 
+// GASは1リクエストごとに1〜2秒の固定費（起動・Drive接続）がかかり、
+// 同時に投げても2〜3本ぶんしか並行してくれない。遅延タブを1本ずつ取ると
+// この固定費が本数ぶん積み上がるため、まとめて1回で取りに行く。
+// 返ってくるのは { 指定した名前: データ } の形。
+async function fetchBundle_(specs) {
+  const url = withKey(GAS_URL + '?type=bundle&parts=' + encodeURIComponent(specs.join(',')));
+  const data = await fetchJSONP(url);
+  return (data && data.parts) ? data.parts : {};
+}
+
+// まとめ取りの結果を、各タブの置き場所へ配る。
+// 失敗した部分は何もしない（あとで1本ずつ取り直される）
+function applyBundleParts_(parts) {
+  const ok = function(key) {
+    const r = parts[key];
+    return (r && r.status !== 'error') ? r : null;
+  };
+  var d;
+  d = ok('shinki_anken');     if (d) LAZY_TABS.shinki.apply(d);
+  d = ok('kengaku_all');      if (d) LAZY_TABS.kengaku.apply(d);
+  d = ok('kanri_neage_all');  if (d) LAZY_TABS.kanriNeage.apply(d);
+  d = ok('ukakezan_all');     if (d) LAZY_TABS.ukakezan.apply(d);
+  d = ok('fuel_all');         if (d) LAZY_TABS.fuel.apply(d);
+
+  // ランキングは条件（集計単位・期間）ごとに持つので、今の条件の場所へ入れる。
+  // まとめ取りは既定条件（現場別・年度累計）で取っているため、
+  // 利用者が条件を変えたあとなら入れない。
+  d = ok('danboru_rank');
+  if (d && danboruConditionKey_() === 'site|fy') {
+    danboruCache[danboruConditionKey_()] = d;
+    cachedDanboru = d;
+    populateDanboruMonthSelect_();   // タブを開いた時に呼ばれない経路なのでここで作る
+  }
+  d = ok('sanpai_rank');
+  if (d && sanpaiConditionKey_() === 'site|fy') {
+    sanpaiCache[sanpaiConditionKey_()] = d;
+    cachedSanpai = d;
+    populateSanpaiMonthSelect_();
+  }
+
+  Object.keys(parts).forEach(function(key) {
+    if (key.indexOf('juchu_monthly@') !== 0) return;
+    const r = ok(key);
+    if (r) cachedJuchuMonthlyByYm[key.slice('juchu_monthly@'.length)] = r;
+  });
+}
+
 const _lazyTabPromises = {};
 
 function loadLazyTab_(key) {
@@ -3821,12 +3868,28 @@ function loadLazyTab_(key) {
   return _lazyTabPromises[key];
 }
 
-// 初期表示のあとに呼ぶ。1本ずつ順番に先読みするので、初期表示の通信を邪魔しない。
+// 初期表示のあとに呼ぶ。まとめて1回で取り、取れなかったものだけ1本ずつ取り直す。
 let _lazyPrefetchStarted = false;
 async function prefetchLazyTabs_() {
   if (_lazyPrefetchStarted) return;
   _lazyPrefetchStarted = true;
-  // 画面左のタブの並びに合わせておく（よく見るものから先に用意される）
+
+  const specs = [
+    'shinki_anken', 'kengaku_all', 'kanri_neage_all', 'ukakezan_all',
+    'fuel_all', 'danboru_rank', 'sanpai_rank'
+  ];
+  // 受注案件タブが既定で開く月も、同じ1回に相乗りさせる
+  const juchuYm = getDefaultReportYm_();
+  if (juchuYm && FALLBACK_MONTHS.includes(juchuYm)) specs.push('juchu_monthly@' + juchuYm);
+
+  try {
+    applyBundleParts_(await fetchBundle_(specs));
+  } catch (e) {
+    /* まとめ取りに失敗しても、下で1本ずつ取り直すので画面は成立する */
+  }
+
+  // まだ埋まっていないタブだけ、これまでどおり順番に取る
+  // （画面左のタブの並びに合わせておく）
   const order = ['shinki', 'juchu', 'kengaku', 'kanriNeage', 'ukakezan', 'fuel', 'danboru', 'sanpai'];
   for (var i = 0; i < order.length; i++) {
     // 失敗しても止めない（そのタブを開いた時に改めて読み込まれる）
