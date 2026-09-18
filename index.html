@@ -5173,9 +5173,7 @@ function renderPerfDetail() {
     html += '<div class="card"><h2>' + dept + '</h2>';
 
     // デフォルト表示（主要指標カード）
-    html += '<div class="grid-2">';
-    defaultGs.forEach(function(g) { html += makeCard(g); });
-    html += '</div>';
+    html += renderGroupCards_(defaultGs);
 
     // 詳細（折りたたみ）
     if (detailGs.length > 0) {
@@ -5184,9 +5182,8 @@ function renderPerfDetail() {
         + '<button class="btn-ghost" onclick="toggleDetail(\'' + uid + '\')" id="btn_' + uid + '" style="font-size:12px;">'
         + '▶ その他の指標を表示</button>'
         + '<div id="detail_' + uid + '" style="display:none;margin-top:10px;">'
-        + '<div class="grid-2">';
-      detailGs.forEach(function(g) { html += makeCard(g); });
-      html += '</div></div></div>';
+        + renderGroupCards_(detailGs)
+        + '</div></div>';
     }
 
     html += '</div>';
@@ -5195,7 +5192,27 @@ function renderPerfDetail() {
   body.innerHTML = html;
 }
 
-function makeCard(g) {
+// 品目カードを並べる。「全体合計」は各品目を足し上げたものなので、
+// 内訳と同じ枠に混ぜず、区切り線を引いた下に幅いっぱいで置く。
+// （並列に置くと、どれが内訳でどれが合計か見分けられない）
+function renderGroupCards_(list) {
+  const totals  = list.filter(function(g) { return g.item === TOTAL_ITEM_NAME; });
+  const details = list.filter(function(g) { return g.item !== TOTAL_ITEM_NAME; });
+  var out = '';
+  if (details.length) {
+    out += '<div class="grid-2">';
+    details.forEach(function(g) { out += makeCard(g); });
+    out += '</div>';
+  }
+  totals.forEach(function(g) {
+    out += '<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:'
+      + (details.length ? '4px' : '0') + ';">' + makeCard(g, true) + '</div>';
+  });
+  return out;
+}
+
+// isTotal のときは合計だと分かるよう、枠の色と数字を強める
+function makeCard(g, isTotal) {
   const target = g.rows[0].target;
   const actual = g.rows[0].actual;
   const rate = (target && actual) ? Math.round(actual / target * 100) : null;
@@ -5205,10 +5222,18 @@ function makeCard(g) {
     else if (rate >= 80) badgeCls = 'rate-near';
     else badgeCls = 'rate-low';
   }
-  return '<div style="padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);margin-bottom:8px">'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:4px">' + g.item + '（' + g.metric + '）</div>'
-    + '<div style="display:flex;justify-content:space-between;align-items:center">'
-    + '<div>'
+  const boxStyle = isTotal
+    ? 'padding:12px 14px;border:1px solid var(--primary);border-radius:8px;background:var(--card);'
+    : 'padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);margin-bottom:8px';
+  const labelStyle = isTotal
+    ? 'font-size:12px;color:var(--primary);font-weight:600;margin-bottom:6px'
+    : 'font-size:12px;color:var(--muted);margin-bottom:4px';
+  const numStyle = isTotal ? 'font-size:16px;' : '';
+
+  return '<div style="' + boxStyle + '">'
+    + '<div style="' + labelStyle + '">' + g.item + '（' + g.metric + '）</div>'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
+    + '<div style="' + numStyle + '">'
     + '<span style="font-size:13px;color:var(--muted)">目標：</span><strong>' + fmtNum(target) + g.unit + '</strong>'
     + '<span style="margin:0 6px;color:var(--border)">|</span>'
     + '<span style="font-size:13px;color:var(--muted)">実績：</span><strong>' + fmtNum(actual) + g.unit + '</strong>'
