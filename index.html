@@ -665,7 +665,7 @@
 
     <!-- 月次推移グラフ -->
     <div id="chart-card" class="card" style="display:none;margin-bottom:16px;">
-      <h2 id="chart-title">月次推移</h2>
+      <h2 id="chart-title" style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;"><span id="chart-title-text" style="flex:1 1 auto;min-width:0;">月次推移</span><span id="chart-cumulative" style="display:none;margin-left:auto;font-size:12px;font-weight:400;color:var(--muted);"></span></h2>
       <div class="chart-canvas-wrap">
         <canvas id="trend-chart"></canvas>
       </div>
@@ -1430,8 +1430,10 @@ async function loadAll(nocache) {
     if (deptAutoSelected) {
       await onDeptChange();
     } else if (deptSel.value && cachedTrend[deptSel.value]) {
-      // 部署は変わらず対象年月だけが変わった場合でも、分析ノートは新しい月に合わせて再描画する
+      // 部署は変わらず対象年月だけが変わった場合でも、分析ノートと事故の累計は
+      // 新しい月に合わせて描き直す
       renderAnalysisNotes(deptSel.value);
+      renderAccidentCumulative_(deptSel.value);
     }
   })();
 
@@ -4632,7 +4634,8 @@ async function onDeptChange() {
   chartCard.style.display = 'block';
   itemSel.style.display = 'inline-block';
   fySel.style.display = 'inline-block';
-  document.getElementById('chart-title').textContent = dept + ' 月次推移';
+  document.getElementById('chart-title-text').textContent = dept + ' 月次推移';
+  renderAccidentCumulative_(dept);
   document.getElementById('chart-status').textContent = '月次データ取得中...';
 
   await populateFiscalYearSelect();
@@ -4912,6 +4915,47 @@ function renderChart() {
   }
 }
 
+// 事故は「今月何件か」より「今年度で何件目か」を見たいので、グラフの右肩に累計を出す。
+// 対象年月までの合計にして、会議で見ている月と数字がずれないようにする。
+// 事故の項目を持たない部署では何も出さない。
+const ACCIDENT_ITEMS = ['車輌事故', '労働災害事故'];
+
+function renderAccidentCumulative_(dept) {
+  const box = document.getElementById('chart-cumulative');
+  if (!box) return;
+  const hide = function() { box.style.display = 'none'; box.innerHTML = ''; };
+
+  const rows = (cachedTrend[dept] || []).filter(function(r) {
+    return ACCIDENT_ITEMS.indexOf(r.item) >= 0 && r.metric === '件数';
+  });
+  if (!rows.length) { hide(); return; }
+
+  const limitYm = document.getElementById('ym-select').value || '9999-99';
+  const target = rows.filter(function(r) { return r.ym && r.ym <= limitYm; });
+  if (!target.length) { hide(); return; }
+
+  const yms = target.map(function(r) { return r.ym; }).sort();
+  const firstMon = Number(yms[0].slice(5, 7));
+  const lastMon  = Number(yms[yms.length - 1].slice(5, 7));
+  const span = (firstMon === lastMon) ? (firstMon + '月') : (firstMon + '〜' + lastMon + '月');
+
+  const parts = ACCIDENT_ITEMS.map(function(item) {
+    const rs = target.filter(function(r) { return r.item === item; });
+    if (!rs.length) return '';
+    var actual = 0, prev = 0;
+    rs.forEach(function(r) {
+      if (typeof r.actual === 'number') actual += r.actual;
+      if (typeof r.prevYear === 'number') prev += r.prevYear;
+    });
+    return esc(item) + ' <b style="color:var(--text);font-size:13px;">' + actual + '件</b>'
+      + '<span style="opacity:.75;">（前年' + prev + '件）</span>';
+  }).filter(Boolean);
+  if (!parts.length) { hide(); return; }
+
+  box.innerHTML = span + '累計　' + parts.join(' ／ ');
+  box.style.display = '';
+}
+
 // 「きれいな」目盛り間隔を計算する（1・2・5・10のいずれかを10のべき乗倍した値にする）
 // Chart.js標準の自動計算だと、データ範囲によって74のような中途半端な間隔になることがあるための対策
 function computeNiceStep_(range) {
@@ -4928,7 +4972,8 @@ function computeNiceStep_(range) {
 }
 
 function drawChart(labels, targets, actuals, dept, chartLabel, unit) {
-  document.getElementById('chart-title').textContent = dept + ' ｜ ' + chartLabel + ' 月次推移';
+  document.getElementById('chart-title-text').textContent = dept + ' ｜ ' + chartLabel + ' 月次推移';
+  renderAccidentCumulative_(dept);
   document.getElementById('chart-status').textContent = '';
   const ctx = document.getElementById('trend-chart').getContext('2d');
   if (trendChart) trendChart.destroy();
@@ -5021,7 +5066,8 @@ const ALLYEARS_COLORS = [
 ];
 
 function renderAllYearsChart(dept, category) {
-  document.getElementById('chart-title').textContent = dept + ' ｜ ' + category + '（全年度比較） 月次推移';
+  document.getElementById('chart-title-text').textContent = dept + ' ｜ ' + category + '（全年度比較） 月次推移';
+  renderAccidentCumulative_(dept);
   document.getElementById('chart-status').textContent = '';
 
   const MONTHS = ["4月","5月","6月","7月","8月","9月","10月","11月","12月","1月","2月","3月"];
