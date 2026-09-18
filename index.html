@@ -4377,9 +4377,9 @@ function renderUkakezan(list, isDefaultView) {
     + '<th>顧客名</th>'
     + '<th style="text-align:right;">未入金額</th>'
     + '<th>請求日</th>'
-    + '<th style="min-width:140px;">理由</th>'
-    + '<th style="min-width:300px;">返答</th>'
-    + '<th style="min-width:250px;">営業確認</th>'
+    + '<th style="min-width:90px;">理由</th>'
+    + '<th style="min-width:170px;">返答</th>'
+    + '<th style="min-width:140px;">営業確認</th>'
     + '<th>結果</th>'
     + '</tr></thead><tbody>';
 
@@ -4394,9 +4394,9 @@ function renderUkakezan(list, isDefaultView) {
       + '<td class="num" style="text-align:right;font-weight:600;">'
       + (typeof r.amount === 'number' ? fmtNum(r.amount) + '円' : '') + '</td>'
       + '<td style="white-space:nowrap;">' + esc(r.billing) + '</td>'
-      + '<td style="white-space:pre-wrap;">' + esc(r.reason) + '</td>'
-      + '<td style="white-space:pre-wrap;">' + esc(r.response) + '</td>'
-      + '<td style="white-space:pre-wrap;">' + esc(r.salesCheck) + '</td>'
+      + '<td style="white-space:pre-wrap;overflow-wrap:anywhere;">' + esc(r.reason) + '</td>'
+      + '<td style="white-space:pre-wrap;overflow-wrap:anywhere;">' + esc(r.response) + '</td>'
+      + '<td style="white-space:pre-wrap;overflow-wrap:anywhere;">' + esc(r.salesCheck) + '</td>'
       + '<td style="white-space:nowrap;">' + statusBadge + '</td>'
       + '</tr>';
   });
