@@ -3624,9 +3624,12 @@ function renderJuchuMonthly(data) {
   if (large.length) {
     html += '<div class="card" style="margin-bottom:16px;"><h2>大型案件情報</h2><div style="display:flex;flex-direction:column;gap:8px;">';
     large.forEach(function(r) {
-      html += '<div style="position:relative;padding:10px 40px 10px 12px;background:var(--bg);border-radius:8px;">'
-        + '<div style="font-weight:600;">' + esc(r.name) + '</div>'
-        + '<div style="color:var(--muted);font-size:13px;margin-top:2px;">' + esc(r.content) + '</div>'
+      const padRight = geppoSyncing ? '12px' : '40px';
+      html += '<div style="position:relative;padding:10px ' + padRight + ' 10px 12px;background:var(--bg);'
+        + 'border-radius:8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;">'
+        + '<div style="font-weight:600;flex:0 0 auto;max-width:100%;">' + esc(r.name) + '</div>'
+        + '<div style="color:var(--muted);font-size:13px;flex:1 1 240px;min-width:0;white-space:pre-wrap;">'
+        + esc(r.content) + '</div>'
         + editBtnHtml_('openJuchuEditModal_', r.id, 'position:absolute;top:8px;right:8px;')
         + '</div>';
     });
