@@ -4374,16 +4374,15 @@ function renderUkakezan(list, isDefaultView) {
     + '<div class="table-scroll"><table class="data-table compact align-top">'
     + '<thead><tr>'
     + '<th>指摘日</th>'
-    + '<th>コード</th>'
     + '<th>顧客名</th>'
     + '<th style="text-align:right;">未入金額</th>'
     + '<th>請求日</th>'
-    + '<th style="min-width:160px;">理由</th>'
-    + '<th style="min-width:200px;">返答</th>'
-    + '<th style="min-width:200px;">営業確認</th>'
-    + '<th style="min-width:160px;">入金確認</th>'
+    + '<th style="min-width:150px;">理由</th>'
+    + '<th style="min-width:320px;">返答</th>'
+    + '<th style="min-width:260px;">営業確認</th>'
+    + '<th style="min-width:80px;">入金確認</th>'
     + '<th>結果</th>'
-    + '<th style="min-width:160px;">備考</th>'
+    + '<th style="min-width:90px;">備考</th>'
     + '</tr></thead><tbody>';
 
   sorted.forEach(function(r) {
@@ -4393,7 +4392,6 @@ function renderUkakezan(list, isDefaultView) {
 
     html += '<tr>'
       + '<td style="white-space:nowrap;">' + esc(r.flagDate) + '</td>'
-      + '<td style="white-space:nowrap;">' + esc(r.code) + '</td>'
       + '<td style="font-weight:600;white-space:nowrap;">' + esc(r.customer) + '</td>'
       + '<td class="num" style="text-align:right;font-weight:600;">'
       + (typeof r.amount === 'number' ? fmtNum(r.amount) + '円' : '') + '</td>'
