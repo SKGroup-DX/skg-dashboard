@@ -658,10 +658,12 @@
 
   <!-- 人事コメントタブ -->
   <div id="tab-hr" class="tab-content">
-    <div class="card">
-      <h2>今月の人事コメント（全部署）<button class="btn btn-primary" style="float:right;font-size:var(--fs-sm);padding:4px 12px;" onclick="openHrModal_(null)">＋ 新規追加</button></h2>
-      <div id="hr-body"><div class="empty">データがありません</div></div>
+    <div class="controls" style="background:none;border:none;padding:0;margin-bottom:16px;gap:12px;">
+      <label>今月の人事コメント（全部署）</label>
+      <button class="btn btn-primary" style="margin-left:auto;" onclick="openHrModal_(null)">＋ 新規追加</button>
     </div>
+
+    <div id="hr-body"><div class="empty">データがありません</div></div>
   </div>
 
   <!-- 部署別実績タブ -->
