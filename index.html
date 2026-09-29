@@ -3676,8 +3676,9 @@ function renderJuchuMonthly(data) {
     html += '<div class="card" style="margin-bottom:16px;"><h2>大型案件情報</h2><div style="display:flex;flex-direction:column;gap:8px;">';
     large.forEach(function(r) {
       const padRight = geppoSyncing ? '12px' : '40px';
-      html += '<div style="position:relative;padding:10px ' + padRight + ' 10px 12px;background:var(--bg);'
-        + 'border-radius:var(--radius-sm);display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;">'
+      html += '<div style="position:relative;padding:10px ' + padRight + ' 10px 12px;background:var(--card);'
+        + 'border:1px solid var(--border);border-radius:var(--radius-sm);'
+        + 'display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;">'
         + '<div style="font-weight:600;flex:0 0 auto;max-width:100%;">' + esc(r.name) + '</div>'
         + '<div style="color:var(--muted);font-size:var(--fs-md);flex:1 1 240px;min-width:0;white-space:pre-wrap;">'
         + esc(r.content) + '</div>'
