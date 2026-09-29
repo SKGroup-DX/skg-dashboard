@@ -4829,13 +4829,15 @@ async function onFiscalYearChange() {
 async function loadDeptTrendAndRender(dept) {
   const itemSel = document.getElementById('item-select');
 
-  if (!cachedTrend[dept]) {
+  if (!cachedTrend[dept] || !cachedTrend[dept].length) {
     try {
       const fyParam = selectedFy !== null ? '&fy=' + encodeURIComponent(selectedFy) : '';
       const url = withKey(GAS_URL + '?type=trend_flat&dept=' + encodeURIComponent(dept) + fyParam);
       const data = await fetchJSONP(url);
       cachedTrend[dept] = data.trend || [];
     } catch(err) {
+      // 失敗した記録を残すと次に開いたときに取り直せなくなるので消しておく
+      delete cachedTrend[dept];
       document.getElementById('chart-status').textContent = '取得失敗: ' + err.message;
       return;
     }
