@@ -413,9 +413,11 @@
 
   /* グラフキャンバス */
   .chart-wrap { position: relative; height: 280px; }
-  .chart-canvas-wrap { position: relative; height: 300px; padding-bottom: 8px; }
-  @media (max-width: 768px) { .chart-canvas-wrap { height: 240px; } }
-  @media (min-width: 1800px) { .chart-canvas-wrap { height: 360px; } }
+  .chart-canvas-wrap {
+    position: relative; padding-bottom: 8px;
+    height: clamp(260px, calc(100vh - 400px), 600px);
+  }
+  @media (max-width: 768px) { .chart-canvas-wrap { height: 260px; } }
 
   /* 自前のグラフ凡例。標準の凡例は折り返し位置が揃わないため、
      4列のグリッドに固定して色の目印を縦に揃える（10件なら4・4・2の3行になる） */
@@ -801,7 +803,7 @@
 
     <div class="card">
       <h2 id="fuel-chart-title">単価比較（AMS・宇佐美・コスモ）</h2>
-      <div style="position:relative;height:340px;">
+      <div class="chart-canvas-wrap">
         <canvas id="fuel-chart"></canvas>
       </div>
     </div>
