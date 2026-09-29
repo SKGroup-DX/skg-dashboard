@@ -210,6 +210,9 @@
   }
   /* 「要注意」のように今すぐ見るべき指標は、枠を太く・影を強めて優先度を視覚的に出す */
   .kpi-card.kpi-danger { background: var(--danger-bg); border-color: var(--danger); border-width: 2px; box-shadow: var(--shadow-sm); }
+  /* 実績の指標とは物差しが違うので、数字を控えめにして並びから浮かせない */
+  .kpi-card.kpi-aside { background: var(--bg-subtle); border-style: dashed; }
+  .kpi-aside .kpi-value { font-size: var(--fs-3xl); color: var(--muted); }
   .kpi-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--muted); }
   .kpi-card-head svg { flex-shrink: 0; }
   .kpi-danger .kpi-card-head { color: var(--danger-text); }
@@ -228,6 +231,7 @@
   .dept-card.state-danger { border-color: var(--danger); border-width: 1px; background: var(--danger-bg); }
   .dept-card.state-empty { opacity: 0.55; }
   .dept-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; gap: 8px; }
+  .dept-card-dept { font-size: var(--fs-xs); color: var(--muted2); margin-bottom: 2px; letter-spacing: 0.02em; }
   .dept-card-name { font-size: var(--fs-xl); font-weight: 600; color: var(--text); }
   .dept-card-metric { font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
   .dept-card-numbers { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
@@ -237,9 +241,9 @@
   .dept-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 
   /* 前月比バッジ */
-  .delta-badge { font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: var(--radius-md); white-space: nowrap; }
-  .delta-up   { background: var(--success-bg); color: var(--success-text); }
-  .delta-down { background: var(--danger-bg); color: var(--danger-text); }
+  .delta-badge { font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: var(--radius-pill); white-space: nowrap; }
+  .delta-up   { background: var(--success-bg); color: var(--success-text); box-shadow: inset 0 0 0 1px var(--success); }
+  .delta-down { background: var(--danger-bg); color: var(--danger-text); box-shadow: inset 0 0 0 1px var(--danger); }
   .delta-flat { background: var(--bg-subtle); color: var(--muted); }
 
   /* 次回までのアクション */
@@ -276,9 +280,11 @@
   .cat-badge.cat-warn   { background: var(--warning-bg); color: var(--warning-text); }
 
   /* プログレスバー（細く・意味で色分け） */
-  .progress-wrap { background: var(--bg-subtle); border-radius: var(--radius-xs); height: 5px;
+  .progress-wrap { position: relative; background: var(--bg-subtle); border-radius: var(--radius-xs); height: 5px;
                    width: 100%; overflow: hidden; display: block; margin-top: 2px; }
   .progress-bar  { height: 100%; border-radius: var(--radius-xs); transition: width 0.4s; }
+  /* 目標（100%）の位置。ここを超えていれば達成 */
+  .progress-goal { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--muted2); }
 
   /* グリッド */
   .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -1550,7 +1556,7 @@ function renderSummary(DEPTS_ARG) {
       + '<div class="kpi-card-head">' + KPI_ICON.danger + '<span class="kpi-label">要注意（80%未満）</span></div>'
       + '<div class="kpi-value">' + dangerCount + '<span class="kpi-unit"> 部署</span></div>'
     + '</div>'
-    + '<div class="kpi-card">'
+    + '<div class="kpi-card kpi-aside">'
       + '<div class="kpi-card-head">' + KPI_ICON.hr + '<span class="kpi-label">人事コメント</span></div>'
       + '<div class="kpi-value">' + hrCount + '<span class="kpi-unit"> 件</span></div>'
     + '</div>';
@@ -1592,7 +1598,10 @@ function renderSummary(DEPTS_ARG) {
     } else if (!row.mainMetric) {
       stateCls = 'state-empty';
     }
-    const barWidth = rate !== null ? Math.min(rate, 100) : 0;
+    // バーは120%で満杯にして、100%の目盛りより右へ出ているかで達成が分かるようにする
+    const BAR_FULL_RATE = 120;
+    const barWidth = rate !== null ? Math.min(rate, BAR_FULL_RATE) / BAR_FULL_RATE * 100 : 0;
+    const goalLeft = 100 / BAR_FULL_RATE * 100;
     const metricLabel = row.mainMetric ? row.mainMetric + (row.mainUnit ? '（' + row.mainUnit + '）' : '') : '指標なし';
     const deltaHtml = buildDeltaBadge(row);
     const actionsHtml = buildActionsHtml(row.dept);
@@ -1600,6 +1609,8 @@ function renderSummary(DEPTS_ARG) {
     let cardHtml = '<div class="dept-card ' + stateCls + '">'
       + '<div class="dept-card-head">'
         + '<div>'
+          + (deptDisplayName_(row.dept) !== row.dept
+              ? '<div class="dept-card-dept">' + esc(row.dept) + '</div>' : '')
           + '<div class="dept-card-name">' + esc(deptDisplayName_(row.dept)) + '</div>'
           + '<div class="dept-card-metric">' + esc(metricLabel) + '</div>'
         + '</div>'
@@ -1611,7 +1622,10 @@ function renderSummary(DEPTS_ARG) {
           + '<span class="dept-card-actual">' + fmtNum(row.totalActual) + '</span>'
           + '<span class="dept-card-target">/ 目標 ' + fmtNum(row.totalTarget) + '</span>'
         + '</div>'
-        + '<div class="progress-wrap"><div class="progress-bar" style="width:' + barWidth + '%;background:' + barColor + '"></div></div>';
+        + '<div class="progress-wrap">'
+          + '<div class="progress-bar" style="width:' + barWidth + '%;background:' + barColor + '"></div>'
+          + '<div class="progress-goal" style="left:' + goalLeft + '%;"></div>'
+        + '</div>';
     } else {
       cardHtml += '<div class="dept-card-empty-text">数値実績の登録なし</div>';
     }
