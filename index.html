@@ -218,6 +218,10 @@
   .kpi-danger .kpi-card-head { color: var(--danger-text); }
   .kpi-label { font-size: var(--fs-sm); color: inherit; }
   .kpi-value { font-size: var(--fs-display); font-weight: 600; color: var(--text); }
+  /* 単位付きの金額・重量は桁が多く、カード幅に対して32pxだと折り返すため一段小さくする */
+  .kpi-value.kpi-value-compact { font-size: var(--fs-3xl); }
+  /* 数字ではなく文章を入れるKPI（対象期間など）。数字と同じ大きさだと折り返してしまう */
+  .kpi-value.kpi-value-text { font-size: var(--fs-lg); line-height: 1.5; }
   .kpi-value .kpi-unit { font-size: var(--fs-lg); font-weight: 400; color: var(--muted); margin-left: 2px; }
   .kpi-danger .kpi-value { color: var(--danger-text); }
   .kpi-danger .kpi-value .kpi-unit { color: var(--danger-text); opacity: 0.75; }
@@ -2334,7 +2338,7 @@ function renderDanboru() {
   const top50 = d.list.reduce(function(a, r) { return a + r.total; }, 0);
 
   kpi.innerHTML =
-      kpiCard_('対象期間', periodLabel, '')
+      kpiCard_('対象期間', periodLabel, '', true)
     + kpiCard_('全体の排出量', fmtT_(d.totalAll, 0), 't')
     + kpiCard_('トップ50の合計', fmtT_(top50, 0), 't')
     + kpiCard_('トップ50の構成比', d.totalAll ? (top50 / d.totalAll * 100).toFixed(1) : '0', '%');
@@ -2372,9 +2376,9 @@ function renderDanboru() {
   body.innerHTML = html;
 }
 
-function kpiCard_(label, value, unit) {
+function kpiCard_(label, value, unit, isText) {
   return '<div class="kpi-card"><div class="kpi-card-head"><span class="kpi-label">' + esc(label) + '</span></div>'
-    + '<div class="kpi-value" style="font-size:' + (String(value).length > 9 ? 'var(--fs-2xl)' : 'var(--fs-3xl)') + ';">'
+    + '<div class="kpi-value ' + (isText ? 'kpi-value-text' : 'kpi-value-compact') + '">'
     + esc(String(value)) + (unit ? '<span class="kpi-unit">' + esc(unit) + '</span>' : '') + '</div></div>';
 }
 
@@ -2578,7 +2582,7 @@ function renderSanpai() {
   const top50 = d.list.reduce(function(a, r) { return a + r.total; }, 0);
 
   kpi.innerHTML =
-      kpiCard_('対象期間', periodLabel, '')
+      kpiCard_('対象期間', periodLabel, '', true)
     + kpiCard_('全体の売上', fmtSen_(d.totalAll), '千円')
     + kpiCard_('トップ50の合計', fmtSen_(top50), '千円')
     + kpiCard_('トップ50の構成比', d.totalAll ? (top50 / d.totalAll * 100).toFixed(1) : '0', '%');
