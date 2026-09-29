@@ -266,6 +266,8 @@
     display: inline-block; padding: 4px 12px; border-radius: var(--radius-pill);
     font-size: var(--fs-lg); font-weight: 600; white-space: nowrap;
   }
+  /* 表のセルの中では、結果バッジ（cat-badge）と大きさをそろえる */
+  .data-table .rate-badge { font-size: var(--fs-sm); padding: 3px 10px; }
   .rate-over { background: var(--success-bg); color: var(--success-text); }
   .rate-near { background: var(--warning-bg); color: var(--warning-text); }
   .rate-low  { background: var(--danger-bg); color: var(--danger-text); }
@@ -482,7 +484,9 @@
   /* データテーブル共通スタイル：受注案件・施設見学・売掛金未入金リストなどのベタ書きを統一 */
   .table-scroll { overflow-x: auto; }
   .data-table { width: 100%; border-collapse: collapse; font-size: var(--fs-lg); }
-  .data-table.compact { font-size: var(--fs-md); }
+  /* その行が何の行かを示す列（物件名・顧客名など）。クリックできるものは
+     .table-link で緑のリンクにし、できないものはこの太字で示す */
+  .data-table td.cell-key { font-weight: 600; }
   .data-table th, .data-table td { padding: 6px 8px; text-align: left; }
   .data-table thead tr { border-bottom: 1px solid var(--border); }
   .data-table thead th { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; }
@@ -2352,7 +2356,7 @@ function renderDanboru() {
   let html = '<div class="card"><h2>排出量ランキング トップ' + d.list.length
     + '<span style="float:right;font-size:var(--fs-sm);color:var(--muted);font-weight:400;">'
     + (d.unit === 'customer' ? '得意先別' : '現場別') + '　除外 ' + (d.excludedCount || 0) + '件</span></h2>'
-    + '<div class="table-scroll"><table class="data-table compact">'
+    + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr><th>順位</th><th class="col-name">得意先</th>'
     + (d.unit === 'customer' ? '<th class="num">現場数</th>' : '<th class="col-name">現場</th>')
     + '<th class="num">合計</th><th class="num">構成比</th><th class="num">月平均</th></tr></thead><tbody>';
@@ -2596,7 +2600,7 @@ function renderSanpai() {
   let html = '<div class="card"><h2>売上ランキング トップ' + d.list.length
     + '<span style="float:right;font-size:var(--fs-sm);color:var(--muted);font-weight:400;">'
     + (d.unit === 'customer' ? '得意先別' : '現場別') + '　除外 ' + (d.excludedCount || 0) + '件</span></h2>'
-    + '<div class="table-scroll"><table class="data-table compact">'
+    + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr><th>順位</th><th class="col-name">得意先</th>'
     + (d.unit === 'customer' ? '<th class="num">現場数</th>' : '<th class="col-name">現場</th>')
     + '<th class="num">合計</th><th class="num">構成比</th><th class="num">月平均</th></tr></thead><tbody>';
@@ -3703,7 +3707,7 @@ function renderJuchuMonthly(data) {
       + '<th>担当者</th><th></th></tr></thead><tbody>';
     juchu.forEach(function(r) {
       html += '<tr>'
-        + '<td>' + esc(r.name) + '</td>'
+        + '<td class="cell-key">' + esc(r.name) + '</td>'
         + '<td>' + esc(r.item) + '</td>'
         + '<td>' + esc(r.date) + '</td>'
         + '<td class="num">' + fmtNum(r.amount) + '円</td>'
@@ -4057,7 +4061,7 @@ function renderKengaku(list) {
     html += '<tr>'
       + '<td>' + esc(r.ym) + '</td>'
       + '<td>' + esc(r.date) + '</td>'
-      + '<td>' + esc(r.company) + '</td>'
+      + '<td class="cell-key">' + esc(r.company) + '</td>'
       + '<td>' + esc(r.facility) + '</td>'
       + '<td>' + esc(r.person) + '</td>'
       + '<td>' + editBtnHtml_('openKengakuEditModal_', r.id) + '</td>'
@@ -4425,7 +4429,7 @@ function renderUkakezan(list, isDefaultView) {
     + amountLabel;
 
   let html = '<div class="card"><h2>' + title + '</h2>'
-    + '<div class="table-scroll"><table class="data-table compact align-top">'
+    + '<div class="table-scroll"><table class="data-table align-top">'
     + '<thead><tr>'
     + '<th>指摘日</th>'
     + '<th>顧客名</th>'
@@ -4444,7 +4448,7 @@ function renderUkakezan(list, isDefaultView) {
 
     html += '<tr>'
       + '<td style="white-space:nowrap;">' + esc(r.flagDate) + '</td>'
-      + '<td style="font-weight:600;white-space:nowrap;">' + esc(r.customer) + '</td>'
+      + '<td class="cell-key" style="white-space:nowrap;">' + esc(r.customer) + '</td>'
       + '<td class="num" style="text-align:right;font-weight:600;">'
       + (typeof r.amount === 'number' ? fmtNum(r.amount) + '円' : '') + '</td>'
       + '<td style="white-space:nowrap;">' + esc(r.billing) + '</td>'
