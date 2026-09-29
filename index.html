@@ -47,17 +47,28 @@
     --space-4: 16px;
     --space-5: 24px;
     --space-6: 32px;
+    /* 文字サイズ（役割で決める。直に px を書かず、必ずここから選ぶ） */
+    --fs-xs: 11px;        /* バッジ・ごく小さい補助文字 */
+    --fs-sm: 12px;        /* ラベル・注記 */
+    --fs-md: 13px;        /* 本文・表のセル */
+    --fs-lg: 14px;        /* 少し強調したい本文 */
+    --fs-xl: 16px;        /* カード見出し */
+    --fs-2xl: 20px;       /* 画面見出し */
+    --fs-3xl: 26px;       /* 大きめの数字 */
+    --fs-display: 32px;   /* KPIの数字 */
     /* 角丸・影スケール */
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 16px;
+    --radius-xs: 4px;     /* サムネイル・凡例の小片 */
+    --radius-sm: 8px;     /* 入力欄・カード内の小箱 */
+    --radius-md: 12px;    /* カード */
+    --radius-lg: 16px;    /* モーダルなど大きい面 */
+    --radius-pill: 999px; /* バッジ・タブ・チップ */
     --radius: var(--radius-md);
     --shadow-sm: 0 1px 2px rgba(15,23,42,0.06);
     --shadow-md: 0 4px 16px rgba(15,23,42,0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: "IBM Plex Sans JP", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-         background: var(--bg); color: var(--text); font-size: 14px; }
+         background: var(--bg); color: var(--text); font-size: var(--fs-lg); }
 
   /* ヘッダー */
   header {
@@ -66,11 +77,11 @@
     justify-content: space-between; position: sticky; top: 0; z-index: 100;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2); flex-wrap: wrap; gap: 6px;
   }
-  header h1 { font-size: 18px; font-weight: 600; }
-  header span { font-size: 12px; opacity: 0.8; }
+  header h1 { font-size: var(--fs-2xl); font-weight: 600; }
+  header span { font-size: var(--fs-sm); opacity: 0.8; }
   @media (max-width: 480px) {
     header { padding: 10px 16px; }
-    header h1 { font-size: 15px; }
+    header h1 { font-size: var(--fs-xl); }
   }
 
   /* コントロールバー */
@@ -81,10 +92,10 @@
     position: sticky; top: 0; z-index: 100;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
-  .controls label { font-size: 13px; color: var(--muted); }
+  .controls label { font-size: var(--fs-md); color: var(--muted); }
   .controls select {
-    padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px;
-    font-size: 14px; background: #fff; cursor: pointer;
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: var(--fs-lg); background: #fff; cursor: pointer;
     color: var(--text);
   }
 
@@ -93,7 +104,7 @@
     display: inline-flex; align-items: center; gap: 6px;
     padding: 6px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
     background: var(--card); color: var(--muted); cursor: pointer;
-    font-family: inherit; font-size: 13px; font-weight: 500;
+    font-family: inherit; font-size: var(--fs-md); font-weight: 500;
     transition: all 0.15s;
   }
   .btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -125,7 +136,7 @@
     from { transform: rotate(0deg); }
     to   { transform: rotate(360deg); }
   }
-  #loading-text { font-size: 14px; color: var(--muted); }
+  #loading-text { font-size: var(--fs-lg); color: var(--muted); }
 
   /* メインレイアウト */
   main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; width: 100%; box-sizing: border-box; }
@@ -144,9 +155,9 @@
   @media (max-width: 768px) { .tab-divider { display: none; } }
   .tab {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border);
     background: var(--card); color: var(--muted); cursor: pointer;
-    font-size: 13px; transition: all 0.15s;
+    font-size: var(--fs-md); transition: all 0.15s;
   }
   .tab svg { flex-shrink: 0; }
   .tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
@@ -164,7 +175,7 @@
     }
     .tab-group { flex-direction: column; align-items: stretch; width: 100%; gap: var(--space-1); }
     .tab-group-label {
-      display: block; font-size: 11px; font-weight: 600; color: var(--muted2);
+      display: block; font-size: var(--fs-xs); font-weight: 600; color: var(--muted2);
       padding: 0 10px; margin: var(--space-2) 0 2px;
     }
     .tab-divider { width: 100%; height: 1px; min-height: 0; margin: var(--space-2) 0; align-self: auto; }
@@ -188,13 +199,13 @@
     transition: box-shadow 0.15s;
   }
   .card:hover { box-shadow: var(--shadow-md); }
-  .card h2 { font-size: 15px; font-weight: 600; color: var(--primary); margin-bottom: 14px;
+  .card h2 { font-size: var(--fs-xl); font-weight: 600; color: var(--primary); margin-bottom: 14px;
               padding-bottom: 8px; border-bottom: 2px solid var(--border); }
 
   /* KPIサマリーバー */
   .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
   .kpi-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
     padding: 12px 14px; transition: box-shadow 0.15s;
   }
   /* 「要注意」のように今すぐ見るべき指標は、枠を太く・影を強めて優先度を視覚的に出す */
@@ -202,51 +213,50 @@
   .kpi-card-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; color: var(--muted); }
   .kpi-card-head svg { flex-shrink: 0; }
   .kpi-danger .kpi-card-head { color: var(--danger-text); }
-  .kpi-label { font-size: 12px; color: inherit; }
-  .kpi-value { font-size: 32px; font-weight: 600; color: var(--text); }
-  .kpi-danger .kpi-value { font-size: 34px; }
-  .kpi-value .kpi-unit { font-size: 14px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+  .kpi-label { font-size: var(--fs-sm); color: inherit; }
+  .kpi-value { font-size: var(--fs-display); font-weight: 600; color: var(--text); }
+  .kpi-value .kpi-unit { font-size: var(--fs-lg); font-weight: 400; color: var(--muted); margin-left: 2px; }
   .kpi-danger .kpi-value { color: var(--danger-text); }
   .kpi-danger .kpi-value .kpi-unit { color: var(--danger-text); opacity: 0.75; }
 
   /* 部署サマリーカード */
   .dept-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-bottom: 10px; }
   .dept-card {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
     padding: 13px; transition: border-color 0.15s;
   }
   .dept-card.state-danger { border-color: var(--danger); border-width: 1px; background: var(--danger-bg); }
   .dept-card.state-empty { opacity: 0.55; }
   .dept-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; gap: 8px; }
-  .dept-card-name { font-size: 16px; font-weight: 600; color: var(--text); }
-  .dept-card-metric { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .dept-card-name { font-size: var(--fs-xl); font-weight: 600; color: var(--text); }
+  .dept-card-metric { font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
   .dept-card-numbers { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
-  .dept-card-actual { font-size: 26px; font-weight: 600; color: var(--text); }
-  .dept-card-target { font-size: 13px; color: var(--muted); }
-  .dept-card-empty-text { font-size: 13px; color: var(--muted); }
+  .dept-card-actual { font-size: var(--fs-3xl); font-weight: 600; color: var(--text); }
+  .dept-card-target { font-size: var(--fs-md); color: var(--muted); }
+  .dept-card-empty-text { font-size: var(--fs-md); color: var(--muted); }
   .dept-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
 
   /* 前月比バッジ */
-  .delta-badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+  .delta-badge { font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: var(--radius-md); white-space: nowrap; }
   .delta-up   { background: var(--success-bg); color: var(--success-text); }
   .delta-down { background: var(--danger-bg); color: var(--danger-text); }
   .delta-flat { background: var(--bg-subtle); color: var(--muted); }
 
   /* 次回までのアクション */
   .action-list { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
-  .action-list-title { font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
-  .action-item { font-size: 12px; color: var(--text); line-height: 1.6; }
+  .action-list-title { font-size: var(--fs-xs); font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .action-item { font-size: var(--fs-sm); color: var(--text); line-height: 1.6; }
   .action-status-todo, .action-status-inprogress {
-    display: inline-block; font-size: 10px; font-weight: 600; padding: 1px 6px;
-    border-radius: 8px; margin-right: 6px;
+    display: inline-block; font-size: var(--fs-xs); font-weight: 600; padding: 1px 6px;
+    border-radius: var(--radius-sm); margin-right: 6px;
   }
   .action-status-todo       { background: var(--danger-bg); color: var(--danger-text); }
   .action-status-inprogress { background: var(--warning-bg); color: var(--warning-text); }
 
   /* 達成率バッジ */
   .rate-badge {
-    display: inline-block; padding: 4px 12px; border-radius: 12px;
-    font-size: 14px; font-weight: 600; white-space: nowrap;
+    display: inline-block; padding: 4px 12px; border-radius: var(--radius-pill);
+    font-size: var(--fs-lg); font-weight: 600; white-space: nowrap;
   }
   .rate-over { background: var(--success-bg); color: var(--success-text); }
   .rate-near { background: var(--warning-bg); color: var(--warning-text); }
@@ -257,8 +267,8 @@
 
   /* 案件ステータスバッジ（新設新規タブ用） */
   .cat-badge {
-    display: inline-block; padding: 3px 10px; border-radius: 12px;
-    font-size: 12px; font-weight: 600; white-space: nowrap;
+    display: inline-block; padding: 3px 10px; border-radius: var(--radius-pill);
+    font-size: var(--fs-sm); font-weight: 600; white-space: nowrap;
   }
   .cat-badge.cat-good   { background: var(--success-bg); color: var(--success-text); }
   .cat-badge.cat-bad    { background: var(--danger-bg);  color: var(--danger-text); }
@@ -266,9 +276,9 @@
   .cat-badge.cat-warn   { background: var(--warning-bg); color: var(--warning-text); }
 
   /* プログレスバー（細く・意味で色分け） */
-  .progress-wrap { background: var(--bg-subtle); border-radius: 3px; height: 5px;
+  .progress-wrap { background: var(--bg-subtle); border-radius: var(--radius-xs); height: 5px;
                    width: 100%; overflow: hidden; display: block; margin-top: 2px; }
-  .progress-bar  { height: 100%; border-radius: 3px; transition: width 0.4s; }
+  .progress-bar  { height: 100%; border-radius: var(--radius-xs); transition: width 0.4s; }
 
   /* グリッド */
   .grid-2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
@@ -280,7 +290,7 @@
     display: grid;
     grid-template-columns: 105px 165px 1fr 90px 85px 40px;
     gap: 0; align-items: stretch;
-    border-radius: 8px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     border-left: 4px solid var(--accent);
     background: var(--bg-subtle); overflow: hidden;
@@ -297,9 +307,9 @@
   .hr-field.hr-edit-cell { padding: 8px 4px; display: flex; align-items: flex-start; justify-content: center; }
   .hr-field-label { display: none; }
   @media (max-width: 640px) {
-    .hr-field-label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+    .hr-field-label { display: block; font-size: var(--fs-xs); color: var(--muted); margin-bottom: 3px; }
   }
-  .hr-field-value { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.6; }
+  .hr-field-value { font-size: var(--fs-lg); font-weight: 500; color: var(--text); line-height: 1.6; }
   /* 部署・対象者・カテゴリは列幅が固定のため、文字数が多いと2段落ちしやすい。
      JS側(fitHrText_)でscrollWidthを見て自動的にfont-sizeを縮小し、1行に収める。 */
   .hr-field-value.hr-fit { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -318,18 +328,18 @@
     padding: 0 0 6px; margin-bottom: 6px;
     border-bottom: 1px solid var(--border);
   }
-  .hr-list-head span { font-size: 11px; color: var(--muted); padding: 0 12px; font-weight: 600; }
+  .hr-list-head span { font-size: var(--fs-xs); color: var(--muted); padding: 0 12px; font-weight: 600; }
 
   /* 人事報告の写真サムネイル・拡大表示 */
   .hr-photo-thumb {
-    width: 32px; height: 32px; object-fit: cover; border-radius: 4px;
+    width: 32px; height: 32px; object-fit: cover; border-radius: var(--radius-xs);
     margin-right: 4px; cursor: zoom-in; border: 1px solid var(--border); background: var(--bg-subtle);
   }
   /* 写真欄に画像以外のURL（資料・記事など）が入っていた場合はリンクチップとして表示する */
   .hr-link-chip {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px; border-radius: 4px; margin-right: 4px;
-    text-decoration: none; font-size: 15px; line-height: 1;
+    width: 32px; height: 32px; border-radius: var(--radius-xs); margin-right: 4px;
+    text-decoration: none; font-size: var(--fs-xl); line-height: 1;
     background: var(--bg-subtle); border: 1px solid var(--border); color: var(--accent);
   }
   .hr-link-chip:hover { background: var(--success-bg); border-color: var(--accent); }
@@ -341,17 +351,17 @@
   .hr-attach-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
   .hr-attach-row {
     display: flex; align-items: center; gap: 8px;
-    padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-subtle);
+    padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-subtle);
   }
   .hr-attach-row.to-remove { opacity: 0.45; border-style: dashed; }
   .hr-attach-row .hr-attach-label {
-    flex: 1; min-width: 0; font-size: 12px; color: var(--muted);
+    flex: 1; min-width: 0; font-size: var(--fs-sm); color: var(--muted);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .hr-attach-row img { width: 32px; height: 32px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+  .hr-attach-row img { width: 32px; height: 32px; object-fit: cover; border-radius: var(--radius-xs); border: 1px solid var(--border); }
   .hr-attach-drop {
-    display: block; border: 1px dashed var(--border); border-radius: 8px;
-    padding: 12px 10px; text-align: center; color: var(--muted); font-size: 12px;
+    display: block; border: 1px dashed var(--border); border-radius: var(--radius-sm);
+    padding: 12px 10px; text-align: center; color: var(--muted); font-size: var(--fs-sm);
     background: var(--card);
   }
   .hr-attach-drop:hover { border-color: var(--accent); }
@@ -360,23 +370,23 @@
   .modal-busy {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
     z-index: 410; display: flex; align-items: center; gap: 10px;
-    padding: 16px 26px; border-radius: 10px;
+    padding: 16px 26px; border-radius: var(--radius-md);
     background: var(--card); border: 1px solid var(--border); box-shadow: var(--shadow-md);
-    font-size: 14px; font-weight: 600; color: var(--primary);
+    font-size: var(--fs-lg); font-weight: 600; color: var(--primary);
     max-width: min(90vw, 340px); text-align: left;
   }
   .modal-busy .spinner-sm { width: 16px; height: 16px; margin: 0; border-width: 2px; flex-shrink: 0; }
   /* 処理中はモーダル本体を薄くし、操作を受け付けないようにする */
   .modal-box.is-busy { opacity: 0.45; pointer-events: none; }
-  .hr-attach-note { font-size: 11px; color: var(--muted2); margin-top: 6px; }
+  .hr-attach-note { font-size: var(--fs-xs); color: var(--muted2); margin-top: 6px; }
   .hr-attach-pending { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
-  .hr-attach-pending div { font-size: 12px; color: var(--accent); }
+  .hr-attach-pending div { font-size: var(--fs-sm); color: var(--accent); }
   .lightbox-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
     z-index: 300; align-items: center; justify-content: center; cursor: zoom-out;
   }
   .lightbox-overlay.active { display: flex; }
-  .lightbox-overlay img { max-width: 97vw; max-height: 96vh; border-radius: 8px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  .lightbox-overlay img { max-width: 97vw; max-height: 96vh; border-radius: var(--radius-sm); box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
   @media (max-width: 640px) {
     .hr-item, .hr-list-head { grid-template-columns: 1fr; }
     .hr-item.with-unit, .hr-list-head.with-unit { grid-template-columns: 1fr; }
@@ -404,12 +414,12 @@
   .chart-legend-item {
     display: flex; align-items: center; gap: 6px;
     min-width: 0;                      /* 名前の「…」省略を効かせるために必要 */
-    padding: 3px 4px; border: none; border-radius: 4px;
-    background: none; font-family: inherit; font-size: 11px; color: var(--text);
+    padding: 3px 4px; border: none; border-radius: var(--radius-xs);
+    background: none; font-family: inherit; font-size: var(--fs-xs); color: var(--text);
     text-align: left; cursor: pointer;
   }
   .chart-legend-item:hover { background: var(--bg-subtle); }
-  .chart-legend-chip { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  .chart-legend-chip { width: 12px; height: 12px; border-radius: var(--radius-xs); flex-shrink: 0; }
   .chart-legend-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* クリックで非表示にした系列 */
   .chart-legend-item.is-off { opacity: 0.4; }
@@ -417,8 +427,8 @@
 
   /* エラー表示 */
   .error-box {
-    background: var(--danger-bg); border: 1px solid var(--danger); border-radius: 8px;
-    padding: 16px; color: var(--danger-text); font-size: 13px;
+    background: var(--danger-bg); border: 1px solid var(--danger); border-radius: var(--radius-sm);
+    padding: 16px; color: var(--danger-text); font-size: var(--fs-md);
   }
 
   /* 品目タブ */
@@ -428,9 +438,9 @@
     #item-tabs > div { flex-wrap: wrap; min-width: 0; }
   }
   .item-tab {
-    padding: 6px 14px; border-radius: 16px; border: 1px solid var(--border);
+    padding: 6px 14px; border-radius: var(--radius-lg); border: 1px solid var(--border);
     background: var(--card); color: var(--muted); cursor: pointer;
-    font-size: 12px; transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
+    font-size: var(--fs-sm); transition: all 0.15s; white-space: nowrap; flex-shrink: 0;
   }
   .item-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   .item-tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); }
@@ -438,7 +448,7 @@
 
   /* 空状態：テキストのみだと素っ気ないので、上に軽量な線画アイコンを添える */
   .empty {
-    text-align: center; color: var(--muted); font-size: 13px;
+    text-align: center; color: var(--muted); font-size: var(--fs-md);
     padding: 46px 20px 32px;
     background-repeat: no-repeat; background-position: center 6px; background-size: 32px 32px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l2-5h14l2 5'/%3E%3Cpath d='M3 9v9a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9'/%3E%3Cpath d='M3 9h18'/%3E%3Cpath d='M9 13h6'/%3E%3C/svg%3E");
@@ -453,11 +463,11 @@
 
   /* データテーブル共通スタイル：受注案件・施設見学・売掛金未入金リストなどのベタ書きを統一 */
   .table-scroll { overflow-x: auto; }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .data-table.compact { font-size: 13px; }
+  .data-table { width: 100%; border-collapse: collapse; font-size: var(--fs-lg); }
+  .data-table.compact { font-size: var(--fs-md); }
   .data-table th, .data-table td { padding: 6px 8px; text-align: left; }
   .data-table thead tr { border-bottom: 1px solid var(--border); }
-  .data-table thead th { font-size: 11px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  .data-table thead th { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; }
   .data-table tbody tr { border-bottom: 1px solid var(--border); }
   .data-table tbody tr:hover { background: var(--bg-subtle); }
   .data-table .num { text-align: right; white-space: nowrap; }
@@ -467,14 +477,14 @@
 
   /* AIレポート */
   .report-card { margin-bottom: 16px; }
-  .report-text { white-space: pre-line; font-size: 13px; line-height: 1.8; color: var(--text); }
-  .report-meta { font-size: 11px; color: var(--muted2); margin-top: 10px; text-align: right; }
+  .report-text { white-space: pre-line; font-size: var(--fs-md); line-height: 1.8; color: var(--text); }
+  .report-meta { font-size: var(--fs-xs); color: var(--muted2); margin-top: 10px; text-align: right; }
   .report-card-empty { border-style: dashed; opacity: 0.7; }
 
   /* 月次インフォグラフィック（AIレポートタブ） */
   .infographic-thumb {
     max-width: 100%; max-height: 75vh; width: auto; height: auto;
-    border-radius: 10px; cursor: zoom-in;
+    border-radius: var(--radius-md); cursor: zoom-in;
     display: block; margin: 0 auto; border: 1px solid var(--border);
   }
   /* 画像の右下に重ねて表示する「画像を変更」ボタン */
@@ -482,45 +492,45 @@
   .infographic-change-img {
     position: absolute; bottom: 10px; right: 10px;
     display: inline-flex; align-items: center; gap: 4px;
-    padding: 6px 12px; border-radius: 20px;
+    padding: 6px 12px; border-radius: var(--radius-pill);
     background: rgba(0,0,0,0.55); color: #fff; cursor: pointer;
-    font-size: 12px;
+    font-size: var(--fs-sm);
   }
   .infographic-change-img:hover { background: rgba(0,0,0,0.75); }
   /* 画像が未登録の場合に表示する追加用ドロップゾーン */
   .infographic-drop {
-    display: block; border: 1px dashed var(--border); border-radius: 10px;
+    display: block; border: 1px dashed var(--border); border-radius: var(--radius-md);
     padding: 32px 16px; text-align: center; color: var(--muted); cursor: pointer;
-    font-size: 13px; background: var(--bg-subtle);
+    font-size: var(--fs-md); background: var(--bg-subtle);
   }
   .infographic-drop:hover { border-color: var(--accent); color: var(--accent); background: var(--success-bg); }
   .infographic-drop.pending { opacity: 0.6; pointer-events: none; }
   /* 文章の直接編集欄 */
   .infographic-edit { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--border); }
-  .infographic-edit-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+  .infographic-edit-label { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); margin-bottom: 6px; }
   .infographic-textarea {
     width: 100%; min-height: 140px; padding: 10px 12px; box-sizing: border-box;
-    border: 1px solid var(--border); border-radius: 8px; font-family: inherit;
-    font-size: 13px; line-height: 1.8; color: var(--text); resize: vertical;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: inherit;
+    font-size: var(--fs-md); line-height: 1.8; color: var(--text); resize: vertical;
   }
   .infographic-textarea:focus { outline: none; border-color: var(--accent); }
   .infographic-actions { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 10px; }
 
   /* その他共有事項（旧：月ごとの自由記述一覧。表形式へ変更したため未使用） */
   .kanrineage-ym-head {
-    font-size: 12px; font-weight: 600; color: var(--muted); margin: 16px 0 6px;
+    font-size: var(--fs-sm); font-weight: 600; color: var(--muted); margin: 16px 0 6px;
     padding-bottom: 4px; border-bottom: 1px solid var(--border);
   }
   .kanrineage-ym-head:first-child { margin-top: 0; }
   .kanrineage-item {
     position: relative;
-    white-space: pre-line; font-size: 13px; line-height: 1.8; color: var(--text);
+    white-space: pre-line; font-size: var(--fs-md); line-height: 1.8; color: var(--text);
     padding: 10px 40px 10px 12px; margin-bottom: 8px; background: var(--bg-subtle);
-    border-radius: 8px; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); border: 1px solid var(--border);
   }
   .kanrineage-item-edit {
     position: absolute; top: 8px; right: 8px;
-    width: 24px; height: 24px; border-radius: 6px;
+    width: 24px; height: 24px; border-radius: var(--radius-sm);
     display: inline-flex; align-items: center; justify-content: center;
     border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer;
   }
@@ -529,7 +539,7 @@
   /* 一覧表（新設新規・受注案件・施設見学など）の行編集ボタン（共通） */
   .table-edit-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 24px; height: 24px; border-radius: 6px;
+    width: 24px; height: 24px; border-radius: var(--radius-sm);
     border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer;
   }
   .table-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--success-bg); }
@@ -543,11 +553,11 @@
   .drop-zone:hover { border-color: var(--accent); color: var(--accent); }
   .drop-zone.is-over { border-color: var(--accent); background: var(--success-bg); color: var(--accent); }
   .drop-zone.is-busy { opacity: .5; pointer-events: none; }
-  .drop-zone-main { font-size: 14px; font-weight: 600; }
-  .drop-zone-sub { font-size: 12px; margin-top: 6px; }
-  .import-summary { margin-top: 14px; font-size: 13px; }
+  .drop-zone-main { font-size: var(--fs-lg); font-weight: 600; }
+  .drop-zone-sub { font-size: var(--fs-sm); margin-top: 6px; }
+  .import-summary { margin-top: 14px; font-size: var(--fs-md); }
   .import-summary dl { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; margin: 10px 0 0; }
-  .import-summary dt { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .import-summary dt { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
   .import-summary dd { margin: 0; }
 
   /* 一覧表の中でクリックして詳細を開けるセル */
@@ -555,8 +565,8 @@
   .table-link:hover { text-decoration: underline; }
 
   /* 詳細モーダルの項目（ラベル＋値の2列） */
-  .detail-grid { display: grid; grid-template-columns: 92px 1fr; gap: 8px 12px; font-size: 13px; }
-  .detail-grid dt { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .detail-grid { display: grid; grid-template-columns: 92px 1fr; gap: 8px 12px; font-size: var(--fs-md); }
+  .detail-grid dt { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
   .detail-grid dd { margin: 0; color: var(--text); white-space: pre-wrap; word-break: break-word; }
   .detail-grid dd.is-empty { color: var(--muted2); }
 
@@ -571,13 +581,13 @@
     max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto;
     box-shadow: var(--shadow-md);
   }
-  .modal-box h3 { font-size: 16px; font-weight: 600; margin-bottom: 16px; color: var(--primary); }
+  .modal-box h3 { font-size: var(--fs-xl); font-weight: 600; margin-bottom: 16px; color: var(--primary); }
   .modal-field { margin-bottom: 14px; }
-  .modal-field label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+  .modal-field label { display: block; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); margin-bottom: 4px; }
   .modal-field input[type="text"], .modal-field input[type="month"], .modal-field input[type="date"],
   .modal-field input[type="number"], .modal-field textarea, .modal-field select {
-    width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px;
-    font-family: inherit; font-size: 13px; box-sizing: border-box; color: var(--text); background: var(--card);
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: inherit; font-size: var(--fs-md); box-sizing: border-box; color: var(--text); background: var(--card);
   }
   .modal-field input:focus, .modal-field textarea:focus, .modal-field select:focus { outline: none; border-color: var(--accent); }
   .modal-field textarea { min-height: 100px; resize: vertical; line-height: 1.7; }
@@ -640,7 +650,7 @@
   <!-- 人事コメントタブ -->
   <div id="tab-hr" class="tab-content">
     <div class="card">
-      <h2>今月の人事コメント（全部署）<button class="btn btn-primary" style="float:right;font-size:12px;padding:4px 12px;" onclick="openHrModal_(null)">＋ 新規追加</button></h2>
+      <h2>今月の人事コメント（全部署）<button class="btn btn-primary" style="float:right;font-size:var(--fs-sm);padding:4px 12px;" onclick="openHrModal_(null)">＋ 新規追加</button></h2>
       <div id="hr-body"><div class="empty">データがありません</div></div>
     </div>
   </div>
@@ -665,11 +675,11 @@
 
     <!-- 月次推移グラフ -->
     <div id="chart-card" class="card" style="display:none;margin-bottom:16px;">
-      <h2 id="chart-title" style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;"><span id="chart-title-text" style="flex:1 1 auto;min-width:0;">月次推移</span><span id="chart-cumulative" style="display:none;margin-left:auto;font-size:12px;font-weight:400;color:var(--muted);"></span></h2>
+      <h2 id="chart-title" style="display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;"><span id="chart-title-text" style="flex:1 1 auto;min-width:0;">月次推移</span><span id="chart-cumulative" style="display:none;margin-left:auto;font-size:var(--fs-sm);font-weight:400;color:var(--muted);"></span></h2>
       <div class="chart-canvas-wrap">
         <canvas id="trend-chart"></canvas>
       </div>
-      <div id="chart-status" style="text-align:center;font-size:12px;color:var(--muted);margin-top:8px;"></div>
+      <div id="chart-status" style="text-align:center;font-size:var(--fs-sm);color:var(--muted);margin-top:8px;"></div>
     </div>
 
     <!-- 分析ノート（部署によっては手入力の分析コメントがある） -->
@@ -714,8 +724,8 @@
     </div>
 
     <div id="juchu-ranking-section" class="card" style="margin-bottom:16px;">
-      <h2>年度累計 受注ランキング（担当者別）<span id="juchu-ranking-total" style="float:right;font-size:14px;color:var(--muted);"></span></h2>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">担当者名をクリックすると、案件の内訳が表示されます</div>
+      <h2>年度累計 受注ランキング（担当者別）<span id="juchu-ranking-total" style="float:right;font-size:var(--fs-lg);color:var(--muted);"></span></h2>
+      <div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">担当者名をクリックすると、案件の内訳が表示されます</div>
       <div id="juchu-ranking-body"><div class="empty">データがありません</div></div>
       <div id="juchu-person-detail" style="display:none;margin-top:14px;"></div>
     </div>
@@ -802,7 +812,7 @@
     <div id="danboru-kpi" class="kpi-row"></div>
 
     <div class="card">
-      <h2>月別の推移<span id="danboru-chart-note" style="float:right;font-size:12px;color:var(--muted);font-weight:400;"></span></h2>
+      <h2>月別の推移<span id="danboru-chart-note" style="float:right;font-size:var(--fs-sm);color:var(--muted);font-weight:400;"></span></h2>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="danboru-band-tabs"></div>
       <div class="chart-canvas-wrap"><canvas id="danboru-chart"></canvas></div>
       <div class="chart-legend" id="danboru-legend"></div>
@@ -812,7 +822,7 @@
 
     <div class="card" style="margin-top:16px;">
       <h2>月次データの取り込み</h2>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+      <div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:10px;">
         書き出したファイルをそのまま入れてください。
         並び順が前月と違っていても、得意先コードと現場コードで照合して正しい行に入ります。
       </div>
@@ -846,7 +856,7 @@
     <div id="sanpai-kpi" class="kpi-row"></div>
 
     <div class="card">
-      <h2>月別の推移<span id="sanpai-chart-note" style="float:right;font-size:12px;color:var(--muted);font-weight:400;"></span></h2>
+      <h2>月別の推移<span id="sanpai-chart-note" style="float:right;font-size:var(--fs-sm);color:var(--muted);font-weight:400;"></span></h2>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="sanpai-band-tabs"></div>
       <div class="chart-canvas-wrap"><canvas id="sanpai-chart"></canvas></div>
       <div class="chart-legend" id="sanpai-legend"></div>
@@ -856,7 +866,7 @@
 
     <div class="card" style="margin-top:16px;">
       <h2>月次データの取り込み</h2>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+      <div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:10px;">
         基幹システムから書き出したファイルをそのまま入れてください。
         並び順が前月と違っていても、得意先コードと現場コードで照合して正しい行に入ります。
       </div>
@@ -1115,8 +1125,8 @@ function editBtnHtml_(fnName, id, style) {
 // 月報が入力元のタブに出す案内
 function geppoNoticeHtml_() {
   if (!geppoSyncing) return '';
-  return '<div style="font-size:12px;color:var(--muted);background:var(--bg-subtle);'
-    + 'border-radius:8px;padding:8px 12px;margin-bottom:10px;">'
+  return '<div style="font-size:var(--fs-sm);color:var(--muted);background:var(--bg-subtle);'
+    + 'border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:10px;">'
     + '📋 この内容は営業月報から1時間おきに自動で反映されます。修正は月報の各自のシートで行ってください。'
     + '</div>';
 }
@@ -1676,7 +1686,7 @@ function renderHr() {
     const hasUnit = items.some(function(it) { return it.unit; });
     const gridCls = hasUnit ? ' with-unit' : '';
     html += '<div style="margin-bottom:20px">'
-      + '<div style="font-weight:600;color:var(--primary);margin-bottom:8px;font-size:14px">◾ ' + esc(dept) + '</div>'
+      + '<div style="font-weight:600;color:var(--primary);margin-bottom:8px;font-size:var(--fs-lg)">◾ ' + esc(dept) + '</div>'
       + '<div class="hr-list-head' + gridCls + '">'
         + (hasUnit ? '<span>部署</span>' : '')
         + '<span>対象者</span><span>カテゴリ</span><span>内容</span><span>対応状況</span><span>写真/リンク</span><span></span>'
@@ -1897,7 +1907,7 @@ async function openHrModal_(existing) {
     html += '<div class="hr-attach-row" id="hr-attach-row-' + i + '" data-slot="' + i + '" data-remove="0">'
       + thumb
       + '<span class="hr-attach-label" title="' + esc(url) + '">' + esc(url) + '</span>'
-      + '<button type="button" class="btn btn-danger" style="font-size:11px;padding:3px 10px;"'
+      + '<button type="button" class="btn btn-danger" style="font-size:var(--fs-xs);padding:3px 10px;"'
       + ' onclick="toggleHrAttachRemove_(' + i + ')" id="hr-attach-btn-' + i + '">削除</button>'
       + '</div>';
   });
@@ -1936,7 +1946,7 @@ function toggleHrAttachRemove_(slot) {
   row.classList.toggle('to-remove', willRemove);
   btn.textContent = willRemove ? '取り消す' : '削除';
   btn.className = willRemove ? 'btn' : 'btn btn-danger';
-  btn.style.fontSize = '11px';
+  btn.style.fontSize = 'var(--fs-xs)';
   btn.style.padding = '3px 10px';
 }
 
@@ -2297,7 +2307,7 @@ function renderDanboru() {
 
   // ランキング表（トップ50を全件）
   let html = '<div class="card"><h2>排出量ランキング トップ' + d.list.length
-    + '<span style="float:right;font-size:12px;color:var(--muted);font-weight:400;">'
+    + '<span style="float:right;font-size:var(--fs-sm);color:var(--muted);font-weight:400;">'
     + (d.unit === 'customer' ? '得意先別' : '現場別') + '　除外 ' + (d.excludedCount || 0) + '件</span></h2>'
     + '<div class="table-scroll"><table class="data-table compact">'
     + '<thead><tr><th>順位</th><th class="col-name">得意先</th>'
@@ -2327,7 +2337,7 @@ function renderDanboru() {
 
 function kpiCard_(label, value, unit) {
   return '<div class="kpi-card"><div class="kpi-card-head"><span class="kpi-label">' + esc(label) + '</span></div>'
-    + '<div class="kpi-value" style="font-size:' + (String(value).length > 9 ? '18px' : '26px') + ';">'
+    + '<div class="kpi-value" style="font-size:' + (String(value).length > 9 ? 'var(--fs-2xl)' : 'var(--fs-3xl)') + ';">'
     + esc(String(value)) + (unit ? '<span class="kpi-unit">' + esc(unit) + '</span>' : '') + '</div></div>';
 }
 
@@ -2541,7 +2551,7 @@ function renderSanpai() {
 
   // ランキング表（トップ50を全件）
   let html = '<div class="card"><h2>売上ランキング トップ' + d.list.length
-    + '<span style="float:right;font-size:12px;color:var(--muted);font-weight:400;">'
+    + '<span style="float:right;font-size:var(--fs-sm);color:var(--muted);font-weight:400;">'
     + (d.unit === 'customer' ? '得意先別' : '現場別') + '　除外 ' + (d.excludedCount || 0) + '件</span></h2>'
     + '<div class="table-scroll"><table class="data-table compact">'
     + '<thead><tr><th>順位</th><th class="col-name">得意先</th>'
@@ -3270,7 +3280,7 @@ function renderShinkiAnken() {
   });
 
   let html = '<div class="card"><h2>新設新規一覧（' + sorted.length + '件）</h2>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">物件名をクリックすると、詳細が表示されます</div>'
+    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">物件名をクリックすると、詳細が表示されます</div>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
     + '<th>発見日</th><th>物件名</th><th>ランク</th>'
@@ -3494,9 +3504,9 @@ function renderJuchuRanking() {
   let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">';
   top3.forEach(function(r, i) {
     html += '<div class="kpi-card" style="flex:1;min-width:160px;text-align:center;cursor:pointer;" onclick="toggleJuchuPerson(' + i + ')">'
-      + '<div style="font-size:28px;">' + medals[i] + '</div>'
-      + '<div style="font-size:15px;font-weight:600;margin-top:4px;">' + esc(r.person) + '</div>'
-      + '<div style="font-size:20px;font-weight:700;color:var(--primary);margin-top:2px;">' + fmtNum(r.total) + '円</div>'
+      + '<div style="font-size:var(--fs-3xl);">' + medals[i] + '</div>'
+      + '<div style="font-size:var(--fs-xl);font-weight:600;margin-top:4px;">' + esc(r.person) + '</div>'
+      + '<div style="font-size:var(--fs-2xl);font-weight:700;color:var(--primary);margin-top:2px;">' + fmtNum(r.total) + '円</div>'
       + '</div>';
   });
   html += '</div>';
@@ -3505,7 +3515,7 @@ function renderJuchuRanking() {
     html += '<div style="display:flex;flex-direction:column;gap:6px;">';
     rest.forEach(function(r, i) {
       const idx = i + 3;
-      html += '<div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:8px;cursor:pointer;" onclick="toggleJuchuPerson(' + idx + ')">'
+      html += '<div style="display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:var(--radius-sm);cursor:pointer;" onclick="toggleJuchuPerson(' + idx + ')">'
         + '<span>' + (idx + 1) + '位　' + esc(r.person) + '</span>'
         + '<span style="font-weight:600;">' + fmtNum(r.total) + '円</span>'
         + '</div>';
@@ -3626,9 +3636,9 @@ function renderJuchuMonthly(data) {
     large.forEach(function(r) {
       const padRight = geppoSyncing ? '12px' : '40px';
       html += '<div style="position:relative;padding:10px ' + padRight + ' 10px 12px;background:var(--bg);'
-        + 'border-radius:8px;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;">'
+        + 'border-radius:var(--radius-sm);display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;">'
         + '<div style="font-weight:600;flex:0 0 auto;max-width:100%;">' + esc(r.name) + '</div>'
-        + '<div style="color:var(--muted);font-size:13px;flex:1 1 240px;min-width:0;white-space:pre-wrap;">'
+        + '<div style="color:var(--muted);font-size:var(--fs-md);flex:1 1 240px;min-width:0;white-space:pre-wrap;">'
         + esc(r.content) + '</div>'
         + editBtnHtml_('openJuchuEditModal_', r.id, 'position:absolute;top:8px;right:8px;')
         + '</div>';
@@ -3641,7 +3651,7 @@ function renderJuchuMonthly(data) {
     juchu.forEach(function(r) { total += r.amount; });
 
     html += '<div class="card">'
-      + '<h2>主な新規案件<span style="float:right;font-size:14px;color:var(--muted);">合計 ' + fmtNum(total) + '円</span></h2>'
+      + '<h2>主な新規案件<span style="float:right;font-size:var(--fs-lg);color:var(--muted);">合計 ' + fmtNum(total) + '円</span></h2>'
       + '<div class="table-scroll"><table class="data-table">'
       + '<thead><tr>'
       + '<th>物件名</th><th>品目</th>'
@@ -4145,7 +4155,7 @@ function renderKanriNeage(list) {
   });
 
   let html = geppoNoticeHtml_() + '<div class="card"><h2>その他共有事項（' + sorted.length + '件）</h2>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">顧客名をクリックすると、見込み数量と経緯・案件詳細が表示されます</div>'
+    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">顧客名をクリックすると、見込み数量と経緯・案件詳細が表示されます</div>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
     + '<th>月</th><th>区分</th><th>カテゴリ</th>'
@@ -4365,7 +4375,7 @@ function renderUkakezan(list, isDefaultView) {
   var totalAmount = 0;
   sorted.forEach(function(r) { if (typeof r.amount === 'number') totalAmount += r.amount; });
   const amountLabel = totalAmount
-    ? '<span style="float:right;font-size:14px;color:var(--muted);">合計 ' + fmtNum(totalAmount) + '円</span>'
+    ? '<span style="float:right;font-size:var(--fs-lg);color:var(--muted);">合計 ' + fmtNum(totalAmount) + '円</span>'
     : '';
   const title = (isDefaultView ? '現在未解決の案件（' + sorted.length + '件）' : '指摘された案件（' + sorted.length + '件）')
     + amountLabel;
@@ -4645,10 +4655,10 @@ function renderFuelCardHolderList() {
 
   let html = '<div class="card" style="margin-top:16px;">'
     + '<h2>カード所持者数（参考）</h2>'
-    + '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">データの登録が歯抜けのため、グラフではなく一覧で参考表示しています</div>'
+    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">データの登録が歯抜けのため、グラフではなく一覧で参考表示しています</div>'
     + '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
   rows.forEach(function(r) {
-    html += '<div style="padding:6px 12px;background:var(--bg);border-radius:8px;font-size:13px;">'
+    html += '<div style="padding:6px 12px;background:var(--bg);border-radius:var(--radius-sm);font-size:var(--fs-md);">'
       + esc(r.ym) + '：' + esc(String(r.value)) + '</div>';
   });
   html += '</div></div>';
@@ -4870,8 +4880,8 @@ function renderAnalysisNotes(dept) {
   }
 
   let html = '<div class="card" style="margin-bottom:16px;"><h2>分析（根拠）'
-    + '<span style="font-weight:400;font-size:13px;color:var(--muted);">　' + esc(note.ym) + '</span></h2>'
-    + '<div style="padding:10px 12px;background:var(--bg);border-radius:8px;font-size:13px;white-space:pre-wrap;">'
+    + '<span style="font-weight:400;font-size:var(--fs-md);color:var(--muted);">　' + esc(note.ym) + '</span></h2>'
+    + '<div style="padding:10px 12px;background:var(--bg);border-radius:var(--radius-sm);font-size:var(--fs-md);white-space:pre-wrap;">'
     + esc(note.note) + '</div></div>';
   wrap.innerHTML = html;
 }
@@ -5044,7 +5054,7 @@ function renderAccidentCumulative_(dept) {
       if (typeof r.actual === 'number') actual += r.actual;
       if (typeof r.prevYear === 'number') prev += r.prevYear;
     });
-    return esc(item) + ' <b style="color:var(--text);font-size:13px;">' + actual + '件</b>'
+    return esc(item) + ' <b style="color:var(--text);font-size:var(--fs-md);">' + actual + '件</b>'
       + '<span style="opacity:.75;">（前年' + prev + '件）</span>';
   }).filter(Boolean);
   if (!parts.length) { hide(); return; }
@@ -5264,7 +5274,7 @@ function renderPerfDetail() {
     if (detailGs.length > 0) {
       const uid = dept.replace(/[^a-zA-Z0-9]/g, '_');
       html += '<div style="margin-top:12px">'
-        + '<button class="btn-ghost" onclick="toggleDetail(\'' + uid + '\')" id="btn_' + uid + '" style="font-size:12px;">'
+        + '<button class="btn-ghost" onclick="toggleDetail(\'' + uid + '\')" id="btn_' + uid + '" style="font-size:var(--fs-sm);">'
         + '▶ その他の指標を表示</button>'
         + '<div id="detail_' + uid + '" style="display:none;margin-top:10px;">'
         + renderGroupCards_(detailGs)
@@ -5308,20 +5318,20 @@ function makeCard(g, isTotal) {
     else badgeCls = 'rate-low';
   }
   const boxStyle = isTotal
-    ? 'padding:12px 14px;border:1px solid var(--primary);border-radius:8px;background:var(--card);'
-    : 'padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-subtle);margin-bottom:8px';
+    ? 'padding:12px 14px;border:1px solid var(--primary);border-radius:var(--radius-sm);background:var(--card);'
+    : 'padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg-subtle);margin-bottom:8px';
   const labelStyle = isTotal
-    ? 'font-size:12px;color:var(--primary);font-weight:600;margin-bottom:6px'
-    : 'font-size:12px;color:var(--muted);margin-bottom:4px';
-  const numStyle = isTotal ? 'font-size:16px;' : '';
+    ? 'font-size:var(--fs-sm);color:var(--primary);font-weight:600;margin-bottom:6px'
+    : 'font-size:var(--fs-sm);color:var(--muted);margin-bottom:4px';
+  const numStyle = isTotal ? 'font-size:var(--fs-xl);' : '';
 
   return '<div style="' + boxStyle + '">'
     + '<div style="' + labelStyle + '">' + g.item + '（' + g.metric + '）</div>'
     + '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
     + '<div style="' + numStyle + '">'
-    + '<span style="font-size:13px;color:var(--muted)">目標：</span><strong>' + fmtNum(target) + g.unit + '</strong>'
+    + '<span style="font-size:var(--fs-md);color:var(--muted)">目標：</span><strong>' + fmtNum(target) + g.unit + '</strong>'
     + '<span style="margin:0 6px;color:var(--border)">|</span>'
-    + '<span style="font-size:13px;color:var(--muted)">実績：</span><strong>' + fmtNum(actual) + g.unit + '</strong>'
+    + '<span style="font-size:var(--fs-md);color:var(--muted)">実績：</span><strong>' + fmtNum(actual) + g.unit + '</strong>'
     + '</div>'
     + '<span class="rate-badge ' + badgeCls + '">' + (rate !== null ? rate + '%' : '-') + '</span>'
     + '</div></div>';
