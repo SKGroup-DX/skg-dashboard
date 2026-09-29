@@ -24,7 +24,7 @@
     --bg-subtle: #F1F2F4;
     --text: #1F2328;
     --muted: #6B7280;
-    --muted2: #9CA3AF;
+    --muted2: #9CA3AF;   /* 線や図形専用。白地との明暗比が2.54しかないため文字には使わない */
     --border: #E5E7EB;
     /* 状態色：成功/警告/危険は「淡い背景tint＋濃い文字色」の1パターンに統一する */
     --success: #3E7C6F;
@@ -175,7 +175,7 @@
     }
     .tab-group { flex-direction: column; align-items: stretch; width: 100%; gap: var(--space-1); }
     .tab-group-label {
-      display: block; font-size: var(--fs-xs); font-weight: 600; color: var(--muted2);
+      display: block; font-size: var(--fs-xs); font-weight: 600; color: var(--muted);
       padding: 0 10px; margin: var(--space-2) 0 2px;
     }
     .tab-divider { width: 100%; height: 1px; min-height: 0; margin: var(--space-2) 0; align-self: auto; }
@@ -235,7 +235,7 @@
   .dept-card.state-danger { border-color: var(--danger); border-width: 1px; background: var(--danger-bg); }
   .dept-card.state-empty { opacity: 0.55; }
   .dept-card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 9px; gap: 8px; }
-  .dept-card-dept { font-size: var(--fs-xs); color: var(--muted2); margin-bottom: 2px; letter-spacing: 0.02em; }
+  .dept-card-dept { font-size: var(--fs-xs); color: var(--muted); margin-bottom: 2px; letter-spacing: 0.02em; }
   .dept-card-name { font-size: var(--fs-xl); font-weight: 600; color: var(--text); }
   .dept-card-metric { font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
   .dept-card-numbers { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
@@ -396,7 +396,7 @@
   .modal-busy .spinner-sm { width: 16px; height: 16px; margin: 0; border-width: 2px; flex-shrink: 0; }
   /* 処理中はモーダル本体を薄くし、操作を受け付けないようにする */
   .modal-box.is-busy { opacity: 0.45; pointer-events: none; }
-  .hr-attach-note { font-size: var(--fs-xs); color: var(--muted2); margin-top: 6px; }
+  .hr-attach-note { font-size: var(--fs-xs); color: var(--muted); margin-top: 6px; }
   .hr-attach-pending { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
   .hr-attach-pending div { font-size: var(--fs-sm); color: var(--accent); }
   .lightbox-overlay {
@@ -500,7 +500,7 @@
   /* AIレポート */
   .report-card { margin-bottom: 16px; }
   .report-text { white-space: pre-line; font-size: var(--fs-md); line-height: 1.8; color: var(--text); }
-  .report-meta { font-size: var(--fs-xs); color: var(--muted2); margin-top: 10px; text-align: right; }
+  .report-meta { font-size: var(--fs-xs); color: var(--muted); margin-top: 10px; text-align: right; }
   .report-card-empty { border-style: dashed; opacity: 0.7; }
 
   /* 月次インフォグラフィック（AIレポートタブ） */
@@ -590,7 +590,7 @@
   .detail-grid { display: grid; grid-template-columns: 92px 1fr; gap: 8px 12px; font-size: var(--fs-md); }
   .detail-grid dt { font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
   .detail-grid dd { margin: 0; color: var(--text); white-space: pre-wrap; word-break: break-word; }
-  .detail-grid dd.is-empty { color: var(--muted2); }
+  .detail-grid dd.is-empty { color: var(--muted); }
 
   /* 追加・編集で共通利用するモーダル */
   .modal-overlay {
