@@ -614,6 +614,9 @@
     border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer;
   }
   .table-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--success-bg); }
+  /* IDが未採番で編集できない行のアイコン。押すと理由を知らせる */
+  .table-edit-btn-noid { opacity: 0.4; cursor: help; }
+  .table-edit-btn-noid:hover { border-color: var(--border); color: var(--muted); background: var(--card); }
 
   /* 月次データの取り込み欄（産廃売上トップ50） */
   .drop-zone {
@@ -1205,9 +1208,34 @@ function rememberGeppoSyncing_(v) {
 // 一覧の行末に出す編集アイコン。月報同期中は何も出さない
 function editBtnHtml_(fnName, id, style) {
   if (geppoSyncing) return '';
+  // IDが無い行は、保存しても更新ではなく新規追加になってしまうため編集させない
+  if (!id) return noIdBtnHtml_(style);
   return '<span class="table-edit-btn"'
     + (style ? ' style="' + style + '"' : '')
     + ' title="編集" onclick="' + fnName + '(&#39;' + esc(id) + '&#39;)">✎</span>';
+}
+
+// IDが未採番の行に出す、押せない編集アイコン
+function noIdBtnHtml_(style) {
+  return '<span class="table-edit-btn table-edit-btn-noid"'
+    + (style ? ' style="' + style + '"' : '')
+    + ' title="この行はまだ編集できません" onclick="alertNoRowId_()">✎</span>';
+}
+
+// 直し方を伝える（スプレッドシート側で一度だけ実行してもらう）
+function alertNoRowId_() {
+  alert([
+    'この行はまだ編集できません。',
+    '',
+    '行を見分けるためのIDが、まだ振られていないためです。',
+    '',
+    '【直し方】',
+    '統合スプレッドシートを開き、メニューの',
+    '「📝 AIレポート作成」→「㉑ 人事フラットログを作り直す」',
+    'を実行してください。',
+    '',
+    'そのあとダッシュボードを再読み込みすると編集できるようになります。'
+  ].join('\n'));
 }
 
 // 月報が入力元のタブに出す案内
@@ -1864,7 +1892,11 @@ function renderHr() {
               ? '<span class="cat-badge ' + hrStatusBadgeCls_(item.status) + '">' + esc(item.status) + '</span>'
               : '<span class="hr-field-value">-</span>')
         + '</div>'
-        + '<div class="hr-field hr-edit-cell"><span class="table-edit-btn" title="編集" onclick="openHrEditModal_(\x27' + esc(item.id) + '\x27)">✎</span></div>'
+        + '<div class="hr-field hr-edit-cell">'
+          + (item.id
+              ? '<span class="table-edit-btn" title="編集" onclick="openHrEditModal_(\x27' + esc(item.id) + '\x27)">✎</span>'
+              : noIdBtnHtml_())
+        + '</div>'
         + '</div>';
     });
     html += '</div></div>';
@@ -2004,6 +2036,8 @@ async function ensureHrConfig_() {
 }
 
 async function openHrEditModal_(id) {
+  // IDが空のまま探すと、同じく空の先頭行に当たってしまう
+  if (!id) { alertNoRowId_(); return; }
   const item = cachedHr.find(function(r) { return r.id === id; });
   if (!item) { alert('データが見つかりませんでした。再読み込みしてください。'); return; }
   await openHrModal_(item);
@@ -5565,7 +5599,11 @@ function fmtNum(n) {
 }
 
 function esc(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // 引用符も必ず変換する。部署名に" が入る（Re"バース仙台港など）ため、
+  // value="..." や onclick="...('...')" の中でそのまま出すと属性が途中で切れ、
+  // 部署名が「Re」になってしまう（人事コメントの編集で実際に起きていた）。
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 // PCサイドバー表示時、固定表示のヘッダー＋コントロールバーの高さ分だけサイドバーの張り付き位置(top)をずらす
