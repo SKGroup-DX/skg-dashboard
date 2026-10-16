@@ -9,15 +9,16 @@
      bodyのフォールバック（Hiragino/Yu Gothic等のOS標準）にそのまま切り替わる -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=Josefin+Sans:wght@600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
 <!-- Chart.jsはタブを開いてグラフを描く時にしか使わないため、defer属性でページ本体の解析・
      データ取得（JSONP通信）の開始をブロックしないようにする（回線が遅い時ほど効果が大きい） -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" defer></script>
 <style>
   :root {
     /* ブランドカラー：緑はアクセントとして要所のみで使う（背景には使わない） */
-    --primary: #1D4B3E;
-    --accent: #3E7C6F;
+    --primary: #231815;   /* 会社サイトの文字色。ヘッダー・ボタン・見出しに使う */
+    --accent: #3E7C6F;    /* 押せる場所を示す色。状態色の緑と同系 */
+    --brand-orange: #D98000;  /* 会社サイトの唯一のアクセント。強調したい数字に使う */
     /* ベース：白〜ごく薄いニュートラルグレー */
     --bg: #F7F8FA;
     --card: #FFFFFF;
@@ -67,8 +68,13 @@
     --shadow-md: 0 4px 16px rgba(15,23,42,0.08);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: "IBM Plex Sans JP", "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-         background: var(--bg); color: var(--text); font-size: var(--fs-lg); }
+  body { font-family: "Noto Sans JP", "IBM Plex Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+         background: var(--bg); color: var(--text); font-size: var(--fs-lg);
+         letter-spacing: 0.01em; }
+
+  /* 欧文と数字は会社サイトと同じ Josefin Sans。和文はこの指定でも
+     Noto Sans JP に落ちるため、数字だけ見た目が揃う */
+  .num-brand { font-family: "Josefin Sans", "Noto Sans JP", sans-serif; letter-spacing: 0.02em; }
 
   /* ヘッダー */
   header {
@@ -217,7 +223,8 @@
   .kpi-card-head svg { flex-shrink: 0; }
   .kpi-danger .kpi-card-head { color: var(--danger-text); }
   .kpi-label { font-size: var(--fs-sm); color: inherit; }
-  .kpi-value { font-size: var(--fs-display); font-weight: 600; color: var(--text); }
+  .kpi-value { font-size: var(--fs-display); font-weight: 700; color: var(--text);
+    font-family: "Josefin Sans", "Noto Sans JP", sans-serif; letter-spacing: 0.02em; }
   /* 単位付きの金額・重量は桁が多く、カード幅に対して32pxだと折り返すため一段小さくする */
   .kpi-value.kpi-value-compact { font-size: var(--fs-3xl); }
   /* 数字ではなく文章を入れるKPI（対象期間など）。数字と同じ大きさだと折り返してしまう */
@@ -239,7 +246,8 @@
   .dept-card-name { font-size: var(--fs-xl); font-weight: 600; color: var(--text); }
   .dept-card-metric { font-size: var(--fs-sm); color: var(--muted); margin-top: 2px; }
   .dept-card-numbers { display: flex; align-items: baseline; gap: 8px; margin-bottom: 7px; }
-  .dept-card-actual { font-size: var(--fs-3xl); font-weight: 600; color: var(--text); }
+  .dept-card-actual { font-size: var(--fs-3xl); font-weight: 700; color: var(--text);
+    font-family: "Josefin Sans", "Noto Sans JP", sans-serif; letter-spacing: 0.02em; }
   .dept-card-target { font-size: var(--fs-md); color: var(--muted); }
   .dept-card-empty-text { font-size: var(--fs-md); color: var(--muted); }
   .dept-card-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
@@ -487,6 +495,7 @@
   /* その行が何の行かを示す列（物件名・顧客名など）。クリックできるものは
      .table-link で緑のリンクにし、できないものはこの太字で示す */
   .data-table td.cell-key { font-weight: 600; }
+  .data-table { letter-spacing: normal; }
   .data-table th, .data-table td { padding: 6px 8px; text-align: left; }
   .data-table thead tr { border-bottom: 1px solid var(--border); }
   .data-table thead th { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; }
