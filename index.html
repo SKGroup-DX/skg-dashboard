@@ -990,6 +990,8 @@ const DEPT_MERGE_SOURCES = {
 // まとめられる側の部署。部署プルダウンには出さない（二重に見えないようにする）
 const DEPT_MERGED_AWAY = Object.keys(DEPT_MERGE_SOURCES)
   .reduce(function(acc, k) { return acc.concat(DEPT_MERGE_SOURCES[k]); }, []);
+// 月次実績の入力がなく、部署別実績に出しても空になる部署
+const DEPT_NO_PERF = ["総合クリエイト課"];
 // その部署のタブで扱う部署の一覧（自分＋まとめた先）
 function deptsForTab_(dept) {
   return [dept].concat(DEPT_MERGE_SOURCES[dept] || []);
@@ -1511,8 +1513,11 @@ async function loadAll(nocache) {
     const deptSel = document.getElementById('dept-select');
     const prevDept = deptSel.value;
     deptSel.innerHTML = '<option value="">全部署</option>';
-    // まとめた側の部署は、まとめ先のタブから見られるのでプルダウンには出さない
-    DEPTS.filter(function(d) { return DEPT_MERGED_AWAY.indexOf(d) < 0; }).forEach(function(d) {
+    // まとめた側の部署（まとめ先のタブから見られる）と、
+    // 月次実績の入力がない部署はプルダウンに出さない
+    DEPTS.filter(function(d) {
+      return DEPT_MERGED_AWAY.indexOf(d) < 0 && DEPT_NO_PERF.indexOf(d) < 0;
+    }).forEach(function(d) {
       const opt = document.createElement('option');
       opt.value = d; opt.textContent = d;
       deptSel.appendChild(opt);
