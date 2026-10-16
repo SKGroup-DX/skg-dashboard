@@ -332,6 +332,9 @@
   .cat-badge.cat-bad    { background: var(--danger-bg);  color: var(--danger-text); box-shadow: inset 0 0 0 1px var(--danger); }
   .cat-badge.cat-normal { background: var(--bg-subtle); color: var(--muted); box-shadow: inset 0 0 0 1px var(--muted2); }
   .cat-badge.cat-warn   { background: var(--warning-bg); color: var(--warning-text); box-shadow: inset 0 0 0 1px var(--warning); }
+  /* まだ何も手が打てていないもの。淡い色どうしだと入金予定と見分けが
+     つかないため、ここだけ塗りつぶして一目で分かるようにする */
+  .cat-badge.cat-urgent { background: var(--danger); color: #fff; box-shadow: none; font-weight: 600; }
 
   /* プログレスバー（細く・意味で色分け） */
   .progress-wrap { position: relative; background: var(--bg-subtle); border-radius: var(--radius-xs); height: 5px;
@@ -4542,6 +4545,17 @@ async function onUkakezanMonthChange() {
   renderUkakezan(cachedUkakezanByYm[ym], false);
 }
 
+// 結果欄の色分け。全部同じ赤だと「まだ何もできていない案件」と
+// 「入金の見通しが立っている案件」が見分けられないため、3段階に分ける。
+//   済（緑）＝終わったもの／予定（黄）＝見通しあり／それ以外・空欄（赤）＝要対応
+function ukakezanResultBadge_(r) {
+  const text = String(r.result || '').trim();
+  if (r.resolved) return '<span class="cat-badge cat-good">済</span>';
+  if (!text) return '<span class="cat-badge cat-urgent">未解決</span>';
+  if (text.indexOf('予定') > -1) return '<span class="cat-badge cat-warn">' + esc(text) + '</span>';
+  return '<span class="cat-badge cat-bad">' + esc(text) + '</span>';
+}
+
 function renderUkakezan(list, isDefaultView) {
   const body = document.getElementById('ukakezan-body');
 
@@ -4578,9 +4592,7 @@ function renderUkakezan(list, isDefaultView) {
     + '</tr></thead><tbody>';
 
   sorted.forEach(function(r) {
-    const statusBadge = r.resolved
-      ? '<span class="cat-badge cat-good">済</span>'
-      : '<span class="cat-badge cat-bad">' + (r.result ? esc(r.result) : '未解決') + '</span>';
+    const statusBadge = ukakezanResultBadge_(r);
 
     html += '<tr>'
       + '<td style="white-space:nowrap;">' + esc(r.flagDate) + '</td>'
