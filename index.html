@@ -18,13 +18,14 @@
     /* ブランドカラー：緑はアクセントとして要所のみで使う（背景には使わない） */
     --primary: #231815;   /* 会社サイトの文字色。ヘッダー・ボタン・見出しに使う */
     --accent: #3E7C6F;    /* 押せる場所を示す色。状態色の緑と同系 */
-    --brand-orange: #D98000;  /* 会社サイトの唯一のアクセント。強調したい数字に使う */
+    --accent-ink: #376E62; /* 同じ緑を薄い背景の上に文字で置くとき用（グレー地で5.25） */
+    --brand-orange: #C97300;  /* 会社サイトのアクセント(#D98000)を、白地で読める濃さ(3.54)にしたもの */
     /* ベース：白〜ごく薄いニュートラルグレー */
     --bg: #F7F8FA;
     --card: #FFFFFF;
     --bg-subtle: #F1F2F4;
     --text: #1F2328;
-    --muted: #6B7280;
+    --muted: #636B78;     /* 薄いグレーの上でも4.8、白地で5.4 */
     --muted2: #9CA3AF;   /* 線や図形専用。白地との明暗比が2.54しかないため文字には使わない */
     --border: #E5E7EB;
     /* 状態色：成功/警告/危険は「淡い背景tint＋濃い文字色」の1パターンに統一する */
@@ -75,6 +76,10 @@
   /* 欧文と数字は会社サイトと同じ Josefin Sans。和文はこの指定でも
      Noto Sans JP に落ちるため、数字だけ見た目が揃う */
   .num-brand { font-family: "Josefin Sans", "Noto Sans JP", sans-serif; letter-spacing: 0.02em; }
+
+  /* ボタンや入力欄はブラウザ既定のフォントになるため、まとめて本文に揃える
+     （クラスごとに書くと、新しいボタンを足したときに漏れるため） */
+  button, select, input, textarea { font-family: inherit; }
 
   /* ヘッダー */
   header {
@@ -177,7 +182,19 @@
     color: var(--muted); margin-bottom: 1px;
   }
   .tab-divider { width: 1px; align-self: stretch; min-height: 22px; background: var(--border); margin: 0 2px; }
-  @media (max-width: 768px) { .tab-divider { display: none; } }
+  @media (max-width: 768px) {
+    .tab-divider { display: none; }
+    /* 折り返さずに横へ流す。左右の余白ぶんだけ外へ広げて、
+       画面の端で切れていることでスクロールできると分かるようにする */
+    .tabs {
+      flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      margin-left: -16px; margin-right: -16px; padding: 2px 16px 6px;
+      scrollbar-width: none;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab-group { flex-wrap: nowrap; }
+    .tab { flex-shrink: 0; }
+  }
   .tab {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 8px 16px; border-radius: var(--radius-pill); border: 1px solid var(--border);
@@ -255,6 +272,8 @@
   .kpi-danger .kpi-value .kpi-unit { color: var(--danger-text); opacity: 0.75; }
 
   /* 部署サマリーカード */
+  /* KPIの数字に添える補足（未入力の部署数など） */
+  .kpi-note { font-size: var(--fs-xs); color: var(--muted); margin-top: 2px; }
   .dept-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin-bottom: 10px; }
   .dept-card {
     background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-md);
@@ -387,7 +406,7 @@
     display: inline-flex; align-items: center; justify-content: center;
     width: 32px; height: 32px; border-radius: var(--radius-xs); margin-right: 4px;
     text-decoration: none; font-size: var(--fs-xl); line-height: 1;
-    background: var(--bg-subtle); border: 1px solid var(--border); color: var(--accent);
+    background: var(--bg-subtle); border: 1px solid var(--border); color: var(--accent-ink);
   }
   .hr-link-chip:hover { background: var(--success-bg); border-color: var(--accent); }
   /* 写真/リンクの1件ずつを囲むラッパー（一覧では閲覧のみ。追加・削除はモーダルから） */
@@ -1318,6 +1337,14 @@ async function skgDiag() {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   el.classList.add('active');
+  // スマホではタブを横1行に流しているため、選んだタブが画面の外にいることがある。
+  // 横方向だけ動かして、選んだタブを見える位置に寄せる。
+  const tabBar = el.closest ? el.closest('.tabs') : null;
+  if (tabBar && tabBar.scrollWidth > tabBar.clientWidth + 1) {
+    const er = el.getBoundingClientRect(), br = tabBar.getBoundingClientRect();
+    const next = tabBar.scrollLeft + (er.left - br.left) - (br.width - er.width) / 2;
+    tabBar.scrollLeft = next;
+  }
   // hrタブは非表示(display:none)中に描画されている場合、幅が0のためフォント縮小の判定ができない。
   // 表示に切り替わったタイミングで再計算する。
   if (id === 'tab-hr') {
@@ -1585,6 +1612,17 @@ async function loadAll(nocache) {
 // ============================================================
 // サマリーテーブル描画
 // ============================================================
+function isUnentered_(row) {
+  if (!row || !row.mainMetric) return false;
+  if (!(typeof row.totalTarget === 'number' && row.totalTarget > 0)) return false;
+  if (row.totalActual !== 0) return false;
+  // 明細も確認して、本当に全項目が空なのかを確かめる
+  if (typeof cachedPerf === 'undefined' || !cachedPerf.length) return true;
+  const rows = cachedPerf.filter(function(r){ return r.dept === row.dept; });
+  if (!rows.length) return true;
+  return rows.every(function(r){ return !r.actual; });
+}
+
 function renderSummary(DEPTS_ARG) {
   const kpiRow = document.getElementById('kpi-row');
   const body = document.getElementById('summary-body');
@@ -1595,7 +1633,11 @@ function renderSummary(DEPTS_ARG) {
     return;
   }
 
-  const withRate = cachedSummary.filter(function(r){ return r.achieveRate !== null; });
+  // 未入力の部署を0%として数えると平均も要注意件数も狂うため、集計から外す
+  const unenteredRows = cachedSummary.filter(isUnentered_);
+  const withRate = cachedSummary.filter(function(r){
+    return r.achieveRate !== null && !isUnentered_(r);
+  });
   const achievedCount = withRate.filter(function(r){ return r.achieveRate >= 100; }).length;
   const dangerCount   = withRate.filter(function(r){ return r.achieveRate < 80; }).length;
   const avgRate = withRate.length
@@ -1614,6 +1656,8 @@ function renderSummary(DEPTS_ARG) {
     '<div class="kpi-card">'
       + '<div class="kpi-card-head">' + KPI_ICON.achieved + '<span class="kpi-label">達成部署数</span></div>'
       + '<div class="kpi-value">' + achievedCount + '<span class="kpi-unit"> / ' + withRate.length + '</span></div>'
+      + (unenteredRows.length
+          ? '<div class="kpi-note">実績が未入力 ' + unenteredRows.length + ' 部署</div>' : '')
     + '</div>'
     + '<div class="kpi-card">'
       + '<div class="kpi-card-head">' + KPI_ICON.rate + '<span class="kpi-label">平均達成率</span></div>'
@@ -1630,6 +1674,7 @@ function renderSummary(DEPTS_ARG) {
 
   // 前月比バッジ（達成率の差ではなく、実績値そのものが前月から何%増減したか）
   function buildDeltaBadge(row) {
+    if (isUnentered_(row)) return '';
     const prev = row.prevTotalActual;
     if (!row.mainMetric || typeof prev !== 'number' || prev <= 0) return '';
     const delta = Math.round((row.totalActual - prev) / prev * 100);
@@ -1656,6 +1701,7 @@ function renderSummary(DEPTS_ARG) {
   // 1部署分のカードHTMLを生成（要注意セクション・通常グループの両方で共通利用）
   function buildDeptCard(row) {
     const rate = row.achieveRate;
+    const unentered = isUnentered_(row);
     const rateStr = rate !== null ? rate + '%' : '-';
     let cls = 'rate-na', barColor = 'var(--muted2)', stateCls = '';
     if (rate !== null) {
@@ -1665,6 +1711,8 @@ function renderSummary(DEPTS_ARG) {
     } else if (!row.mainMetric) {
       stateCls = 'state-empty';
     }
+    // 未入力は「未達」ではないので、赤ではなく控えめな見た目にする
+    if (unentered) { cls = 'rate-na'; barColor = 'var(--muted2)'; stateCls = 'state-empty'; }
     // バーは120%で満杯にして、100%の目盛りより右へ出ているかで達成が分かるようにする
     const BAR_FULL_RATE = 120;
     const barWidth = rate !== null ? Math.min(rate, BAR_FULL_RATE) / BAR_FULL_RATE * 100 : 0;
@@ -1681,10 +1729,15 @@ function renderSummary(DEPTS_ARG) {
           + '<div class="dept-card-name">' + esc(deptDisplayName_(row.dept)) + '</div>'
           + '<div class="dept-card-metric">' + esc(metricLabel) + '</div>'
         + '</div>'
-        + (rate !== null ? '<span class="rate-badge ' + cls + '">' + rateStr + '</span>' : '')
+        + (unentered
+            ? '<span class="rate-badge rate-na">未入力</span>'
+            : (rate !== null ? '<span class="rate-badge ' + cls + '">' + rateStr + '</span>' : ''))
       + '</div>';
 
-    if (row.mainMetric) {
+    if (unentered) {
+      cardHtml += '<div class="dept-card-empty-text">実績はまだ入力されていません'
+        + '<br>目標 ' + fmtNum(row.totalTarget) + '</div>';
+    } else if (row.mainMetric) {
       cardHtml += '<div class="dept-card-numbers">'
           + '<span class="dept-card-actual">' + fmtNum(row.totalActual) + '</span>'
           + '<span class="dept-card-target">/ 目標 ' + fmtNum(row.totalTarget) + '</span>'
@@ -5357,6 +5410,15 @@ function renderAllYearsChart(dept, category) {
 // ============================================================
 // 部署別実績描画（デフォルト指標のみ表示・折りたたみ対応）
 // ============================================================
+// その部署のこの月の実績が、まだ1件も入っていないか
+// （目標が立っているのに全項目が空のときだけ未入力とみなす）
+function isPerfRowsUnentered_(rows) {
+  if (!rows || !rows.length) return false;
+  const hasTarget = rows.some(function(r){ return typeof r.target === 'number' && r.target > 0; });
+  if (!hasTarget) return false;
+  return rows.every(function(r){ return !r.actual; });
+}
+
 function renderPerfDetail() {
   const selectedDept = document.getElementById('dept-select').value;
   const body = document.getElementById('perf-body');
@@ -5391,15 +5453,20 @@ function renderPerfDetail() {
   Object.keys(deptGroups).forEach(function(dept) {
     const gs = deptGroups[dept];
     const defaultMetric = DEPT_DEFAULT_METRIC[dept];
+    const unentered = isPerfRowsUnentered_(
+      gs.reduce(function(a, g){ return a.concat(g.rows); }, [])
+    );
 
     // デフォルト表示グループと詳細グループに分離
     const defaultGs = defaultMetric ? gs.filter(function(g){ return g.metric === defaultMetric; }) : gs;
     const detailGs  = defaultMetric ? gs.filter(function(g){ return g.metric !== defaultMetric; }) : [];
 
-    html += '<div class="card"><h2>' + dept + '</h2>';
+    html += '<div class="card"><h2>' + dept
+      + (unentered ? ' <span class="rate-badge rate-na">実績が未入力</span>' : '')
+      + '</h2>';
 
     // デフォルト表示（主要指標カード）
-    html += renderGroupCards_(defaultGs);
+    html += renderGroupCards_(defaultGs, unentered);
 
     // 詳細（折りたたみ）
     if (detailGs.length > 0) {
@@ -5408,7 +5475,7 @@ function renderPerfDetail() {
         + '<button class="btn-ghost" onclick="toggleDetail(\'' + uid + '\')" id="btn_' + uid + '" style="font-size:var(--fs-sm);">'
         + '▶ その他の指標を表示</button>'
         + '<div id="detail_' + uid + '" style="display:none;margin-top:10px;">'
-        + renderGroupCards_(detailGs)
+        + renderGroupCards_(detailGs, unentered)
         + '</div></div>';
     }
 
@@ -5421,24 +5488,24 @@ function renderPerfDetail() {
 // 品目カードを並べる。「全体合計」は各品目を足し上げたものなので、
 // 内訳と同じ枠に混ぜず、区切り線を引いた下に幅いっぱいで置く。
 // （並列に置くと、どれが内訳でどれが合計か見分けられない）
-function renderGroupCards_(list) {
+function renderGroupCards_(list, unentered) {
   const totals  = list.filter(function(g) { return g.item === TOTAL_ITEM_NAME; });
   const details = list.filter(function(g) { return g.item !== TOTAL_ITEM_NAME; });
   var out = '';
   if (details.length) {
     out += '<div class="grid-2">';
-    details.forEach(function(g) { out += makeCard(g); });
+    details.forEach(function(g) { out += makeCard(g, false, unentered); });
     out += '</div>';
   }
   totals.forEach(function(g) {
     out += '<div style="border-top:1px solid var(--border);padding-top:12px;margin-top:'
-      + (details.length ? '4px' : '0') + ';">' + makeCard(g, true) + '</div>';
+      + (details.length ? '4px' : '0') + ';">' + makeCard(g, true, unentered) + '</div>';
   });
   return out;
 }
 
 // isTotal のときは合計だと分かるよう、枠の色と数字を強める
-function makeCard(g, isTotal) {
+function makeCard(g, isTotal, unentered) {
   const target = g.rows[0].target;
   const actual = g.rows[0].actual;
   const rate = (target && actual) ? Math.round(actual / target * 100) : null;
@@ -5461,10 +5528,12 @@ function makeCard(g, isTotal) {
     + '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">'
     + '<div style="' + numStyle + '">'
     + '<span style="font-size:var(--fs-md);color:var(--muted)">目標：</span><strong>' + fmtNum(target) + g.unit + '</strong>'
-    + '<span style="margin:0 6px;color:var(--border)">|</span>'
-    + '<span style="font-size:var(--fs-md);color:var(--muted)">実績：</span><strong>' + fmtNum(actual) + g.unit + '</strong>'
+    + '<span aria-hidden="true" style="margin:0 6px;color:var(--muted2)">|</span>'
+    + '<span style="font-size:var(--fs-md);color:var(--muted)">実績：</span><strong>'
+      + (unentered ? '未入力' : fmtNum(actual) + g.unit) + '</strong>'
     + '</div>'
-    + '<span class="rate-badge ' + badgeCls + '">' + (rate !== null ? rate + '%' : '-') + '</span>'
+    + '<span class="rate-badge ' + badgeCls + '">'
+      + (unentered ? '未入力' : (rate !== null ? rate + '%' : '-')) + '</span>'
     + '</div></div>';
 }
 
