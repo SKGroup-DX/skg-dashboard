@@ -982,6 +982,19 @@ const ALL_DEPTS = [
 // 全部署サマリーの部署カードだけで使う表示名の上書き。
 // 部署名そのもの（他タブでの絞り込み・データの紐付けキー）は変更せず、
 // この画面の見た目（カードの見出し）だけをわかりやすい名称に置き換える。
+// 部署別実績で、ある部署のタブにまとめて表示する部署
+// （キーのタブに、値の部署のデータも並べる）
+const DEPT_MERGE_SOURCES = {
+  "感動デザイン課": ["地域インフラ共創部1課"]
+};
+// まとめられる側の部署。部署プルダウンには出さない（二重に見えないようにする）
+const DEPT_MERGED_AWAY = Object.keys(DEPT_MERGE_SOURCES)
+  .reduce(function(acc, k) { return acc.concat(DEPT_MERGE_SOURCES[k]); }, []);
+// その部署のタブで扱う部署の一覧（自分＋まとめた先）
+function deptsForTab_(dept) {
+  return [dept].concat(DEPT_MERGE_SOURCES[dept] || []);
+}
+
 const DEPT_DISPLAY_NAME = {
   "地域インフラ共創部1課": "一廃・産廃合計",
   "地域インフラ共創部2課": "自社古紙合計",
@@ -1498,14 +1511,15 @@ async function loadAll(nocache) {
     const deptSel = document.getElementById('dept-select');
     const prevDept = deptSel.value;
     deptSel.innerHTML = '<option value="">全部署</option>';
-    DEPTS.forEach(function(d) {
+    // まとめた側の部署は、まとめ先のタブから見られるのでプルダウンには出さない
+    DEPTS.filter(function(d) { return DEPT_MERGED_AWAY.indexOf(d) < 0; }).forEach(function(d) {
       const opt = document.createElement('option');
       opt.value = d; opt.textContent = d;
       deptSel.appendChild(opt);
     });
 
     // 部署別実績タブの初期表示部署（ページ初回ロード時のみ自動選択する）
-    const DEFAULT_PERF_DEPT = '地域インフラ共創部1課';
+    const DEFAULT_PERF_DEPT = '感動デザイン課';
     let deptAutoSelected = false;
     if (prevDept && DEPTS.includes(prevDept)) {
       deptSel.value = prevDept;
@@ -4775,6 +4789,27 @@ const DEPT_DEFAULT_CHART = {
   "Re\"バース仙台扇町":     { key:"古紙合計||数量" },
 };
 
+// その部署のタブで使う「合計」グラフの設定。
+// 自分に合計の設定がなければ、まとめた部署の設定を借りる。
+// （合計の選択肢は1タブにつき1つなので、最初に見つかったものを使う）
+function defaultChartDef_(dept) {
+  const own = DEPT_DEFAULT_CHART[dept];
+  if (own && own.filterFn) return own;
+  const sources = DEPT_MERGE_SOURCES[dept] || [];
+  for (let i = 0; i < sources.length; i++) {
+    const srcDept = sources[i];
+    const src = DEPT_DEFAULT_CHART[srcDept];
+    if (src && src.filterFn) {
+      // タブには2部署分の行が入っているので、借りた部署の行だけを合算する
+      return {
+        label: src.label + '（' + srcDept + '）',
+        filterFn: function(r) { return r.dept === srcDept && src.filterFn(r); }
+      };
+    }
+  }
+  return own;
+}
+
 // カードのデフォルト表示指標（この指標のカードをデフォルト表示）
 const DEPT_DEFAULT_METRIC = {
   "地域インフラ共創部1課":  "粗利益",
@@ -4862,9 +4897,12 @@ async function loadDeptTrendAndRender(dept) {
   if (!cachedTrend[dept] || !cachedTrend[dept].length) {
     try {
       const fyParam = selectedFy !== null ? '&fy=' + encodeURIComponent(selectedFy) : '';
-      const url = withKey(GAS_URL + '?type=trend_flat&dept=' + encodeURIComponent(dept) + fyParam);
-      const data = await fetchJSONP(url);
-      cachedTrend[dept] = data.trend || [];
+      const results = await Promise.all(deptsForTab_(dept).map(function(d) {
+        return fetchJSONP(withKey(GAS_URL + '?type=trend_flat&dept=' + encodeURIComponent(d) + fyParam));
+      }));
+      cachedTrend[dept] = results.reduce(function(acc, data) {
+        return acc.concat((data && data.trend) ? data.trend : []);
+      }, []);
     } catch(err) {
       // 失敗した記録を残すと次に開いたときに取り直せなくなるので消しておく
       delete cachedTrend[dept];
@@ -4886,7 +4924,7 @@ async function loadDeptTrendAndRender(dept) {
 
   // デフォルト設定を先頭に追加してから品目プルダウンを構築
   // （「分析」カテゴリはグラフの品目ではなく、下部の分析ノートとして別に表示するため除外する）
-  const def = DEPT_DEFAULT_CHART[dept];
+  const def = defaultChartDef_(dept);
   const itemKeys = moveTotalItemLast_([...new Set(
     cachedTrend[dept]
       .filter(function(r){ return r.category !== "分析"; })
@@ -4913,11 +4951,13 @@ async function loadDeptTrendAndRender(dept) {
   itemSel.innerHTML = optionsHtml;
 
   // デフォルト品目を自動選択
-  if (def) {
-    if (def.filterFn) {
+  // （初期表示は、借りてきた合計ではなくその部署自身の設定に従う）
+  const ownDef = DEPT_DEFAULT_CHART[dept];
+  if (ownDef) {
+    if (ownDef.filterFn) {
       itemSel.value = '__default__';
-    } else if (def.key) {
-      itemSel.value = def.key;
+    } else if (ownDef.key) {
+      itemSel.value = ownDef.key;
       if (!itemSel.value) itemSel.selectedIndex = 0; // なければ先頭
     }
   }
@@ -4969,26 +5009,31 @@ function renderAnalysisNotes(dept) {
 function renderItemTabs(dept) {
   const tabsWrap = document.getElementById('item-tabs');
   const tabsInner = tabsWrap.querySelector('div');
-  const defaultMetric = DEPT_DEFAULT_METRIC[dept];
+  // まとめた部署ごとに既定の指標が違うので、その全部を対象にする
+  const defaultMetrics = deptsForTab_(dept)
+    .map(function(d) { return DEPT_DEFAULT_METRIC[d]; })
+    .filter(function(m) { return !!m; });
 
-  if (!defaultMetric || !cachedTrend[dept] || !cachedTrend[dept].length) {
+  if (!defaultMetrics.length || !cachedTrend[dept] || !cachedTrend[dept].length) {
     tabsWrap.style.display = 'none';
     return;
   }
 
   // デフォルト指標に該当する品目一覧（重複なし）
-  const items = moveTotalItemLast_([...new Set(
-    cachedTrend[dept]
-      .filter(function(r){ return r.metric === defaultMetric; })
-      .map(function(r){ return r.item; })
-  )]);
+  // 品目名から、その品目がどの指標のものかを引けるようにしておく
+  // （感動デザイン課のタブには数量と粗利益が混ざるため）
+  const itemMetric = {};
+  cachedTrend[dept].forEach(function(r) {
+    if (defaultMetrics.indexOf(r.metric) > -1 && !itemMetric[r.item]) itemMetric[r.item] = r.metric;
+  });
+  const items = moveTotalItemLast_(Object.keys(itemMetric));
 
   if (!items.length) {
     tabsWrap.style.display = 'none';
     return;
   }
 
-  const def = DEPT_DEFAULT_CHART[dept];
+  const def = defaultChartDef_(dept);
   let html = '';
 
   // 合計タブ（filterFnがある部署のみ）
@@ -4998,7 +5043,7 @@ function renderItemTabs(dept) {
   }
 
   items.forEach(function(item) {
-    const key = item + '||' + defaultMetric;
+    const key = item + '||' + itemMetric[item];
     html += '<div class="item-tab" data-key="' + esc(key) + '" onclick="selectItemTab(\'' + esc(key) + '\')">'
       + esc(item) + '</div>';
   });
@@ -5052,7 +5097,7 @@ function renderChart() {
   const labels  = MONTHS.map(function(m,i){ return YEARS[i] + '/' + m; });
 
   let records, chartLabel, unit;
-  const def = DEPT_DEFAULT_CHART[dept];
+  const def = defaultChartDef_(dept);
 
   if (itemKey === '__default__' && def && def.filterFn) {
     // 合計モード：filterFnに一致する全品目を月ごとに合算
@@ -5310,8 +5355,9 @@ function renderAllYearsChart(dept, category) {
 function renderPerfDetail() {
   const selectedDept = document.getElementById('dept-select').value;
   const body = document.getElementById('perf-body');
-  const data = selectedDept
-    ? cachedPerf.filter(function(r){ return r.dept === selectedDept; })
+  const targetDepts = selectedDept ? deptsForTab_(selectedDept) : null;
+  const data = targetDepts
+    ? cachedPerf.filter(function(r){ return targetDepts.indexOf(r.dept) > -1; })
     : cachedPerf;
 
   if (!data.length) {
