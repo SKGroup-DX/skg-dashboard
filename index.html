@@ -98,6 +98,12 @@
     position: sticky; top: 0; z-index: 100;
     box-shadow: 0 2px 6px rgba(0,0,0,0.04);
   }
+  /* 貼り付くのは画面上部の「対象年月」バーだけ。タブの中の絞り込み行は
+     同じクラスを使い回しているので、貼り付きを打ち消しておく
+     （放っておくと対象年月バーと同じ位置に重なって文字が読めなくなる） */
+  .tab-content .controls {
+    position: static; z-index: auto; box-shadow: none;
+  }
   .controls label { font-size: var(--fs-md); color: var(--muted); }
   .controls select {
     padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
