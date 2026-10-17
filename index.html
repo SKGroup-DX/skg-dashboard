@@ -351,7 +351,7 @@
   .hr-list { display: flex; flex-direction: column; gap: 8px; }
   .hr-item {
     display: grid;
-    grid-template-columns: 150px 165px 1fr 96px 40px;
+    grid-template-columns: 150px 165px 1fr 96px;
     gap: 0; align-items: stretch;
     border-radius: var(--radius-sm);
     border: 1px solid var(--border);
@@ -359,15 +359,13 @@
     background: var(--card); overflow: hidden;
   }
   /* 部署（ユニット）列がある部署だけ、列を1つ追加したレイアウトにする */
-  .hr-item.with-unit, .hr-list-head.with-unit { grid-template-columns: 100px 150px 165px 1fr 96px 40px; }
+  .hr-item.with-unit, .hr-list-head.with-unit { grid-template-columns: 100px 150px 165px 1fr 96px; }
   .hr-item.cat-good   { border-left-color: var(--success); }
   .hr-item.cat-bad    { border-left-color: var(--warning); }
   .hr-item.cat-safety { border-left-color: var(--danger); }
   .hr-item.cat-enter  { border-left-color: #6B5B95; }
   .hr-field { padding: 10px 12px; border-right: 1px solid var(--border); }
   .hr-field:last-child { border-right: none; }
-  /* 行の編集ボタンを置く最終列（幅が狭いため余白を詰める） */
-  .hr-field.hr-edit-cell { padding: 8px 4px; display: flex; align-items: flex-start; justify-content: center; }
   .hr-field-label { display: none; }
   @media (max-width: 640px) {
     .hr-field-label { display: block; font-size: var(--fs-xs); color: var(--muted); margin-bottom: 3px; }
@@ -393,7 +391,7 @@
   .hr-dept-card h2 { display: flex; align-items: baseline; gap: var(--space-2); }
   .hr-dept-count { margin-left: auto; font-size: var(--fs-sm); font-weight: 400; color: var(--muted); }
   .hr-list-head {
-    display: grid; grid-template-columns: 150px 165px 1fr 96px 40px;
+    display: grid; grid-template-columns: 150px 165px 1fr 96px;
     padding: 0 0 6px; margin-bottom: 6px;
     border-bottom: 1px solid var(--border);
   }
@@ -544,6 +542,9 @@
   .data-table thead th { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; white-space: nowrap; }
   .data-table tbody tr { border-bottom: 1px solid var(--border); }
   .data-table tbody tr:hover { background: var(--bg-subtle); }
+  /* 行のどこを押しても開くことが分かるようにする（表はもともとホバーで色が変わる） */
+  .row-clickable { cursor: pointer; }
+  .hr-item.row-clickable:hover { background: var(--bg-subtle); }
   .data-table .num { text-align: right; white-space: nowrap; }
   /* 長い会社名・現場名はこの列で折り返させ、金額の列から幅を奪わせない */
   .data-table .col-name { width: 34%; }
@@ -611,15 +612,6 @@
   .kanrineage-item-edit:hover { border-color: var(--accent); color: var(--accent); background: var(--success-bg); }
 
   /* 一覧表（新設新規・受注案件・施設見学など）の行編集ボタン（共通） */
-  .table-edit-btn {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 24px; height: 24px; border-radius: var(--radius-sm);
-    border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor: pointer;
-  }
-  .table-edit-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--success-bg); }
-  /* IDが未採番で編集できない行のアイコン。押すと理由を知らせる */
-  .table-edit-btn-noid { opacity: 0.4; cursor: help; }
-  .table-edit-btn-noid:hover { border-color: var(--border); color: var(--muted); background: var(--card); }
 
   /* 月次データの取り込み欄（産廃売上トップ50） */
   .drop-zone {
@@ -728,6 +720,7 @@
   <div id="tab-hr" class="tab-content">
     <div class="controls" style="background:none;border:none;padding:0;margin-bottom:16px;gap:12px;">
       <label>今月の人事コメント（全部署）</label>
+      <span style="font-size:var(--fs-sm);color:var(--muted);margin-left:10px;">行をクリックすると編集できます</span>
       <button class="btn btn-primary" style="margin-left:auto;" onclick="openHrModal_(null)">＋ 新規追加</button>
     </div>
 
@@ -1208,21 +1201,31 @@ function rememberGeppoSyncing_(v) {
   try { localStorage.setItem('skg_geppo_syncing', geppoSyncing ? '1' : '0'); } catch (e) { /* 無視 */ }
 }
 
-// 一覧の行末に出す編集アイコン。月報同期中は何も出さない
-function editBtnHtml_(fnName, id, style) {
-  if (geppoSyncing) return '';
-  // IDが無い行は、保存しても更新ではなく新規追加になってしまうため編集させない
-  if (!id) return noIdBtnHtml_(style);
-  return '<span class="table-edit-btn"'
-    + (style ? ' style="' + style + '"' : '')
-    + ' title="編集" onclick="' + fnName + '(&#39;' + esc(id) + '&#39;)">✎</span>';
+// 行をクリックしたときに開く。次の場合は何もしない：
+// ・リンクや写真など、その要素自体に別の動きがあるものを押したとき
+// ・文字を選択しただけのとき（内容をコピーしたいことがあるため）
+function onRowClick_(ev, fnName, id) {
+  if (ev.target.closest('a, button, input, select, textarea, .hr-link-chip, .hr-photo-wrap')) return;
+  const sel = window.getSelection();
+  if (sel && String(sel).trim()) return;
+  if (!id) { alertNoRowId_(); return; }
+  const fn = window[fnName];
+  if (typeof fn === 'function') fn(id);
 }
 
-// IDが未採番の行に出す、押せない編集アイコン
-function noIdBtnHtml_(style) {
-  return '<span class="table-edit-btn table-edit-btn-noid"'
-    + (style ? ' style="' + style + '"' : '')
-    + ' title="この行はまだ編集できません" onclick="alertNoRowId_()">✎</span>';
+// 行に付けるクリック用の属性。
+// alwaysを指定しない行は、月報同期中（編集できない）は押せないままにする。
+function rowClickAttr_(fnName, id, always) {
+  if (!always && geppoSyncing) return '';
+  return ' class="row-clickable" onclick="onRowClick_(event, &#39;' + fnName + '&#39;, &#39;' + esc(id) + '&#39;)"';
+}
+
+// 行をクリックすれば編集できることを知らせる一文。
+// 月報同期中は編集できないため、そのときは出さない（代わりに同期中の案内が出る）
+function rowClickNoticeHtml_(text) {
+  if (geppoSyncing) return '';
+  return '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">'
+    + (text || '行をクリックすると編集できます') + '</div>';
 }
 
 // 直し方を伝える（スプレッドシート側で一度だけ実行してもらう）
@@ -1863,7 +1866,7 @@ function renderHr() {
       + '<h2>' + esc(dept) + '<span class="hr-dept-count">' + items.length + '件</span></h2>'
       + '<div class="hr-list-head' + gridCls + '">'
         + (hasUnit ? '<span>部署</span>' : '')
-        + '<span>対象者</span><span>カテゴリ</span><span>内容</span><span>対応状況</span><span></span>'
+        + '<span>対象者</span><span>カテゴリ</span><span>内容</span><span>対応状況</span>'
       + '</div>'
       + '<div class="hr-list">';
     items.forEach(item => {
@@ -1882,7 +1885,9 @@ function renderHr() {
         return '<span class="hr-photo-wrap">'
           + '<a href="' + esc(url) + '" target="_blank" rel="noopener noreferrer" class="hr-link-chip" title="' + esc(url) + '">🔗</a></span>';
       }).join('');
-      html += '<div class="hr-item ' + cls + gridCls + '">'
+      html += '<div class="hr-item ' + cls + gridCls
+        + (item.id ? ' row-clickable" onclick="onRowClick_(event, \x27openHrEditModal_\x27, \x27' + esc(item.id) + '\x27)' : '')
+        + '">'
         + (hasUnit ? '<div class="hr-field"><span class="hr-field-label">部署</span><span class="hr-field-value hr-fit">' + (item.unit ? esc(item.unit) : '-') + '</span></div>' : '')
         + '<div class="hr-field"><span class="hr-field-label">対象者</span><span class="hr-field-value hr-target">' + (item.targetPerson ? esc(item.targetPerson) : '-') + '</span></div>'
         + '<div class="hr-field"><span class="hr-field-label">カテゴリ</span><span class="hr-field-value hr-target">' + esc(item.category || '未分類') + '</span></div>'
@@ -1894,11 +1899,6 @@ function renderHr() {
           + (item.status
               ? '<span class="cat-badge ' + hrStatusBadgeCls_(item.status) + '">' + esc(item.status) + '</span>'
               : '<span class="hr-field-value">-</span>')
-        + '</div>'
-        + '<div class="hr-field hr-edit-cell">'
-          + (item.id
-              ? '<span class="table-edit-btn" title="編集" onclick="openHrEditModal_(\x27' + esc(item.id) + '\x27)">✎</span>'
-              : noIdBtnHtml_())
         + '</div>'
         + '</div>';
     });
@@ -3466,24 +3466,22 @@ function renderShinkiAnken() {
   });
 
   let html = '<div class="card"><h2>新設新規一覧（' + sorted.length + '件）</h2>'
-    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">物件名をクリックすると、詳細が表示されます</div>'
+    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">行をクリックすると、詳細が表示されます</div>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
     + '<th>発見日</th><th>物件名</th><th>ランク</th>'
-    + '<th>場所</th><th>営業担当</th><th>結果</th><th></th></tr></thead><tbody>';
+    + '<th>場所</th><th>営業担当</th><th>結果</th></tr></thead><tbody>';
 
   sorted.forEach(function(r) {
     const rankCls = SHINKI_RANK_CLASS[r.rank] || 'rate-na';
     const resultCls = SHINKI_RESULT_CLASS[r.result] || 'cat-normal';
-    html += '<tr>'
+    html += '<tr' + rowClickAttr_('openShinkiDetailModal_', r.id, true) + '>'
       + '<td style="white-space:nowrap;">' + esc(r.date) + '</td>'
-      + '<td><span class="table-link" onclick="openShinkiDetailModal_(\'' + esc(r.id) + '\')">'
-        + esc(r.propertyName || '(物件名未登録)') + '</span></td>'
+      + '<td class="cell-key">' + esc(r.propertyName || '(物件名未登録)') + '</td>'
       + '<td><span class="rate-badge ' + rankCls + '">' + esc(r.rank || '-') + '</span></td>'
       + '<td>' + esc(r.place || '') + '</td>'
       + '<td style="white-space:nowrap;">' + esc(r.salesPerson || '') + '</td>'
       + '<td><span class="cat-badge ' + resultCls + '">' + esc(r.result || '未設定') + '</span></td>'
-      + '<td><span class="table-edit-btn" title="編集" onclick="openShinkiEditModal_(\'' + esc(r.id) + '\')">✎</span></td>'
       + '</tr>';
   });
 
@@ -3820,14 +3818,13 @@ function renderJuchuMonthly(data) {
   if (large.length) {
     html += '<div class="card" style="margin-bottom:16px;"><h2>大型案件情報</h2><div style="display:flex;flex-direction:column;gap:8px;">';
     large.forEach(function(r) {
-      const padRight = geppoSyncing ? '12px' : '40px';
-      html += '<div style="position:relative;padding:10px ' + padRight + ' 10px 12px;background:var(--card);'
+      html += '<div' + rowClickAttr_('openJuchuEditModal_', r.id)
+        + ' style="position:relative;padding:10px 12px;background:var(--card);'
         + 'border:1px solid var(--border);border-radius:var(--radius-sm);'
         + 'display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;">'
         + '<div style="font-weight:600;flex:0 0 auto;max-width:100%;">' + esc(r.name) + '</div>'
         + '<div style="color:var(--muted);font-size:var(--fs-md);flex:1 1 240px;min-width:0;white-space:pre-wrap;">'
         + esc(r.content) + '</div>'
-        + editBtnHtml_('openJuchuEditModal_', r.id, 'position:absolute;top:8px;right:8px;')
         + '</div>';
     });
     html += '</div></div>';
@@ -3839,19 +3836,19 @@ function renderJuchuMonthly(data) {
 
     html += '<div class="card">'
       + '<h2>主な新規案件<span style="float:right;font-size:var(--fs-lg);color:var(--muted);">合計 ' + fmtNum(total) + '円</span></h2>'
+      + rowClickNoticeHtml_()
       + '<div class="table-scroll"><table class="data-table">'
       + '<thead><tr>'
       + '<th>物件名</th><th>品目</th>'
       + '<th>対応日</th><th class="num">金額</th>'
-      + '<th>担当者</th><th></th></tr></thead><tbody>';
+      + '<th>担当者</th></tr></thead><tbody>';
     juchu.forEach(function(r) {
-      html += '<tr>'
+      html += '<tr' + rowClickAttr_('openJuchuEditModal_', r.id) + '>'
         + '<td class="cell-key">' + esc(r.name) + '</td>'
         + '<td>' + esc(r.item) + '</td>'
         + '<td>' + esc(r.date) + '</td>'
         + '<td class="num">' + fmtNum(r.amount) + '円</td>'
         + '<td>' + esc(r.person) + '</td>'
-        + '<td>' + editBtnHtml_('openJuchuEditModal_', r.id) + '</td>'
         + '</tr>';
     });
     html += '</tbody></table></div></div>';
@@ -4190,20 +4187,20 @@ function renderKengaku(list) {
   });
 
   let html = geppoNoticeHtml_() + '<div class="card"><h2>施設見学一覧（' + sorted.length + '件）</h2>'
+    + rowClickNoticeHtml_()
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
     + '<th>月</th><th>見学日</th>'
     + '<th>対象企業名</th><th>見学施設</th>'
-    + '<th>担当者</th><th></th></tr></thead><tbody>';
+    + '<th>担当者</th></tr></thead><tbody>';
 
   sorted.forEach(function(r) {
-    html += '<tr>'
+    html += '<tr' + rowClickAttr_('openKengakuEditModal_', r.id) + '>'
       + '<td>' + esc(r.ym) + '</td>'
       + '<td>' + esc(r.date) + '</td>'
       + '<td class="cell-key">' + esc(r.company) + '</td>'
       + '<td>' + esc(r.facility) + '</td>'
       + '<td>' + esc(r.person) + '</td>'
-      + '<td>' + editBtnHtml_('openKengakuEditModal_', r.id) + '</td>'
       + '</tr>';
   });
 
@@ -4342,22 +4339,20 @@ function renderKanriNeage(list) {
   });
 
   let html = geppoNoticeHtml_() + '<div class="card"><h2>その他共有事項（' + sorted.length + '件）</h2>'
-    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">顧客名をクリックすると、見込み数量と経緯・案件詳細が表示されます</div>'
+    + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">行をクリックすると、見込み数量と経緯・案件詳細が表示されます</div>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
     + '<th>月</th><th>区分</th><th>カテゴリ</th>'
-    + '<th class="col-name">顧客名</th><th>品目</th><th></th></tr></thead><tbody>';
+    + '<th class="col-name">顧客名</th><th>品目</th></tr></thead><tbody>';
 
   sorted.forEach(function(r) {
     const kindCls = SHARE_KIND_CLASS[r.kind] || 'cat-normal';
-    html += '<tr>'
+    html += '<tr' + rowClickAttr_('openKanriNeageDetailModal_', r.id, true) + '>'
       + '<td style="white-space:nowrap;">' + esc(r.ym) + '</td>'
       + '<td><span class="cat-badge ' + kindCls + '">' + esc(r.kind || '未設定') + '</span></td>'
       + '<td>' + esc(r.category) + '</td>'
-      + '<td class="col-name"><span class="table-link" onclick="openKanriNeageDetailModal_(\'' + esc(r.id) + '\')">'
-        + esc(r.customer || '(顧客名未登録)') + '</span></td>'
+      + '<td class="col-name cell-key">' + esc(r.customer || '(顧客名未登録)') + '</td>'
       + '<td>' + esc(r.item) + '</td>'
-      + '<td>' + editBtnHtml_('openKanriNeageEditModal_', r.id) + '</td>'
       + '</tr>';
   });
 
