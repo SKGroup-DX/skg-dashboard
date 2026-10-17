@@ -1244,15 +1244,6 @@ function alertNoRowId_() {
   ].join('\n'));
 }
 
-// 月報が入力元のタブに出す案内
-function geppoNoticeHtml_() {
-  if (!geppoSyncing) return '';
-  return '<div style="font-size:var(--fs-sm);color:var(--muted);background:var(--bg-subtle);'
-    + 'border-radius:var(--radius-sm);padding:8px 12px;margin-bottom:10px;">'
-    + '📋 この内容は営業月報から1時間おきに自動で反映されます。修正は月報の各自のシートで行ってください。'
-    + '</div>';
-}
-
 // ============================================================
 // JSONP fetch（CORSを回避）
 // ============================================================
@@ -3809,11 +3800,11 @@ function renderJuchuMonthly(data) {
   const juchu = (data && data.juchu) ? data.juchu : [];
 
   if (!large.length && !juchu.length) {
-    body.innerHTML = geppoNoticeHtml_() + '<div class="empty">この月のデータはまだ登録されていません</div>';
+    body.innerHTML = '<div class="empty">この月のデータはまだ登録されていません</div>';
     return;
   }
 
-  let html = geppoNoticeHtml_();
+  let html = '';
 
   if (large.length) {
     html += '<div class="card" style="margin-bottom:16px;"><h2>大型案件情報</h2><div style="display:flex;flex-direction:column;gap:8px;">';
@@ -4186,7 +4177,7 @@ function renderKengaku(list) {
     return a.ym < b.ym ? 1 : -1;
   });
 
-  let html = geppoNoticeHtml_() + '<div class="card"><h2>施設見学一覧（' + sorted.length + '件）</h2>'
+  let html = '<div class="card"><h2>施設見学一覧（' + sorted.length + '件）</h2>'
     + rowClickNoticeHtml_()
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
@@ -4338,7 +4329,7 @@ function renderKanriNeage(list) {
     return a.ym < b.ym ? 1 : -1;
   });
 
-  let html = geppoNoticeHtml_() + '<div class="card"><h2>その他共有事項（' + sorted.length + '件）</h2>'
+  let html = '<div class="card"><h2>その他共有事項（' + sorted.length + '件）</h2>'
     + '<div style="font-size:var(--fs-sm);color:var(--muted);margin-bottom:8px;">行をクリックすると、見込み数量と経緯・案件詳細が表示されます</div>'
     + '<div class="table-scroll"><table class="data-table">'
     + '<thead><tr>'
