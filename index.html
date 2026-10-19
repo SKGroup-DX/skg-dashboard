@@ -3427,9 +3427,11 @@ function populateShinkiResultSelect() {
 // 新設新規（感動デザイン課）：一覧描画
 // ============================================================
 const SHINKI_RANK_CLASS = { S: 'rank-gold', A: 'rate-near', B: 'rate-na', C: 'rate-low' };
+// 月報は人が入力するため表記がゆれる（実際に「取得出来ず」と「取得できず」が混在）。
+// 同じ意味のものは同じ色になるよう、両方を登録しておく。
 const SHINKI_RESULT_CLASS = {
   '取得': 'cat-good', 'これから対応': 'cat-normal', '交渉中': 'cat-normal',
-  '取得出来ず': 'cat-bad', '対象外': 'cat-bad'
+  '取得出来ず': 'cat-bad', '取得できず': 'cat-bad', '対象外': 'cat-bad'
 };
 
 function renderShinkiAnken() {
