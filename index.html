@@ -780,7 +780,7 @@
       <select id="shinki-result-select" onchange="renderShinkiAnken()">
         <option value="">すべて</option>
       </select>
-      <button class="btn btn-primary" style="margin-left:auto;" onclick="openShinkiModal_(null)">＋ 新規追加</button>
+      <button class="btn btn-primary" id="shinki-add-btn" style="margin-left:auto;" onclick="openShinkiModal_(null)">＋ 新規追加</button>
     </div>
     <div id="shinki-body"><div class="empty">データがありません</div></div>
   </div>
@@ -1187,9 +1187,9 @@ try {
   geppoSyncing = localStorage.getItem('skg_geppo_syncing') === '1';
 } catch (e) { /* プライベートブラウズ等で使えない場合は無視する */ }
 
-// 3つのタブの「＋新規追加」ボタンをまとめて出し分ける
+// 月報が入力元のタブの「＋新規追加」ボタンをまとめて出し分ける
 function applyGeppoReadOnly_() {
-  ['juchu-add-btn', 'kanrineage-add-btn', 'kengaku-add-btn'].forEach(function(id) {
+  ['juchu-add-btn', 'kanrineage-add-btn', 'kengaku-add-btn', 'shinki-add-btn'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) el.style.display = geppoSyncing ? 'none' : '';
   });
@@ -3510,7 +3510,7 @@ function openShinkiDetailModal_(id) {
   html += '</dl>';
   html += '<div class="modal-actions">'
     + '<button class="btn" onclick="closeModal()">閉じる</button>'
-    + '<button class="btn btn-primary" onclick="openShinkiEditModal_(\'' + esc(r.id) + '\')">編集</button>'
+    + (geppoSyncing ? '' : '<button class="btn btn-primary" onclick="openShinkiEditModal_(\'' + esc(r.id) + '\')">編集</button>')
     + '</div>';
   openModal_(html);
 }
